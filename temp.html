@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LUMIÈRE | Precision Home Appliances</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#aac7ff",
+                        "on-secondary-container": "#636264",
+                        "secondary-container": "#e2dfe1",
+                        "tertiary-fixed": "#d7e3ff",
+                        "error": "#ba1a1a",
+                        "surface": "#f9f9fb",
+                        "inverse-primary": "#c6c6c6",
+                        "on-surface": "#1a1c1d",
+                        "surface-container": "#eeeef0",
+                        "tertiary-container": "#001b3e",
+                        "on-tertiary-fixed": "#001b3e",
+                        "on-error-container": "#93000a",
+                        "inverse-surface": "#2f3132",
+                        "surface-bright": "#f9f9fb",
+                        "surface-container-low": "#f3f3f5",
+                        "primary-container": "#1b1b1b",
+                        "tertiary": "#000000",
+                        "on-tertiary": "#ffffff",
+                        "surface-dim": "#d9dadc",
+                        "on-primary-container": "#848484",
+                        "background": "#f9f9fb",
+                        "on-primary-fixed-variant": "#474747",
+                        "surface-container-highest": "#e2e2e4",
+                        "inverse-on-surface": "#f0f0f2",
+                        "secondary": "#5f5e60",
+                        "error-container": "#ffdad6",
+                        "outline-variant": "#cfc4c5",
+                        "surface-container-high": "#e8e8ea",
+                        "secondary-fixed-dim": "#c8c6c8",
+                        "on-secondary-fixed-variant": "#474649",
+                        "on-error": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-background": "#1a1c1d",
+                        "on-surface-variant": "#4c4546",
+                        "on-primary-fixed": "#1b1b1b",
+                        "primary-fixed": "#e2e2e2",
+                        "on-primary": "#ffffff",
+                        "outline": "#7e7576",
+                        "primary": "#000000",
+                        "on-tertiary-fixed-variant": "#00458e",
+                        "on-tertiary-container": "#3a83ea",
+                        "primary-fixed-dim": "#c6c6c6",
+                        "surface-variant": "#e2e2e4",
+                        "secondary-fixed": "#e4e2e4",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed": "#1b1b1d",
+                        "surface-tint": "#5e5e5e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "section-gap-mobile": "64px",
+                        "grid-gutter": "24px",
+                        "base": "8px",
+                        "container-margin": "48px",
+                        "container-margin-mobile": "20px",
+                        "section-gap": "120px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "display-lg-mobile": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "headline-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "display-lg-mobile": ["40px", {"lineHeight": "1.1", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "display-lg": ["64px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .bento-card-shadow {
+            box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.04);
+        }
+        .glass-nav {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        
+        /* Interactive Dial Styles */
+        :root {
+            --dial-rotation: 0deg;
+            --transition-speed: 0.8s;
+            --transition-timing: cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        
+        .rotary-dial {
+            transform: rotate(var(--dial-rotation));
+            transition: transform var(--transition-speed) var(--transition-timing);
+            will-change: transform;
+        }
+        
+        .dial-item {
+            transform: rotate(calc(-1 * var(--dial-rotation)));
+            transition: transform var(--transition-speed) var(--transition-timing);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            :root {
+                --transition-speed: 0.1s;
+            }
+        }
+        
+        .bezel-texture {
+            background: conic-gradient(
+                from 0deg,
+                #f3f3f5 0%,
+                #e2e2e4 25%,
+                #f3f3f5 50%,
+                #e2e2e4 75%,
+                #f3f3f5 100%
+            );
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.05), 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .showcase-image-fade {
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-surface-container-lowest text-primary font-body-md antialiased">
+<!-- Top Navigation Bar -->
+<nav class="fixed top-0 w-full flex justify-between items-center px-container-margin py-4 max-w-[1440px] mx-auto z-50 glass-nav bg-surface/80 border-b border-surface-container-highest">
+<div class="font-headline-md text-headline-md tracking-tighter font-bold text-primary">LUMIERE</div>
+<div class="hidden md:flex gap-8">
+<a class="font-label-md text-label-md text-primary font-bold border-b-2 border-primary pb-1" href="#">Home</a>
+<a class="font-label-md text-label-md text-secondary hover:text-primary transition-colors duration-200" href="#">Categories</a>
+<a class="font-label-md text-label-md text-secondary hover:text-primary transition-colors duration-200" href="#">Cart</a>
+<a class="font-label-md text-label-md text-secondary hover:text-primary transition-colors duration-200" href="#">Contact</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="scale-95 active:opacity-80 transition-all">
+<span class="material-symbols-outlined text-primary">search</span>
+</button>
+<button class="scale-95 active:opacity-80 transition-all relative">
+<span class="material-symbols-outlined text-primary">shopping_bag</span>
+<span class="absolute -top-1 -right-1 bg-primary text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">2</span>
+</button>
+</div>
+</nav>
+<!-- Hero Section -->
+<section class="relative w-full h-[921px] min-h-[600px] flex items-center overflow-hidden">
+<div class="absolute inset-0 z-0">
+<img class="w-full h-full object-cover" data-alt="A wide-angle, minimalist lifestyle photograph of a high-end modern living room. The space is filled with bright, natural morning light, highlighting a sleek integrated smart TV on a clean white wall and a discreet, designer air conditioning unit. The interior design follows a monochrome palette with soft gray furniture and pristine white surfaces, embodying a quiet luxury aesthetic for home appliances." src="https://lh3.googleusercontent.com/aida-public/AB6AXuArAnYFnRG9AuBnIfZ5aMZTkaYXMC2y6vzgGcNplXeW_GuKhewTBKpun_jl7juaZug9dYMTAzU2BY82sCKDcrZm03e4looBPySqERlALS1FITinGr6Jtz3u1Ywn8fmULcOjxyJhvJKj2YyAbDamf8TgW_2qM6tIlhfIsbQdtA6q0jGF9PionEvfITkFD2NFbJ5sXZwWjPt15KIb9tl-zmLUeFQ00-HMC39-YajtvDkMJfHPcsLsln6CBfPSqO7oAnqVaTHot7NCWMR8"/>
+<div class="absolute inset-0 bg-gradient-to-r from-white/40 to-transparent"></div>
+</div>
+<div class="relative z-10 px-container-margin max-w-[1440px] mx-auto w-full">
+<div class="max-w-2xl">
+<h1 class="font-display-lg text-display-lg md:text-display-lg text-primary mb-6 animate-fade-in-up">
+                    Smart Appliances for a Smarter Home
+                </h1>
+<p class="font-body-lg text-body-lg text-secondary mb-10 max-w-lg">
+                    Experience the pinnacle of engineering and minimalist design. Precision-crafted for those who demand excellence in every detail of their living space.
+                </p>
+<button class="bg-primary text-on-primary px-10 py-4 rounded-xl font-label-md text-label-md hover:scale-[1.02] active:scale-95 transition-all">
+                    Shop Now
+                </button>
+</div>
+</div>
+</section>
+<!-- Bento Category Grid -->
+<section class="py-section-gap px-container-margin max-w-[1440px] mx-auto">
+<div class="mb-12">
+<h2 class="font-headline-lg text-headline-lg text-primary">Curated Collections</h2>
+<p class="text-secondary mt-2">Precision engineered across all categories.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-grid-gutter h-auto md:h-[800px]">
+<!-- Large: Inverter ACs -->
+<div class="md:col-span-8 bg-surface-container-low rounded-[24px] p-10 flex flex-col justify-between group overflow-hidden bento-card-shadow relative">
+<div class="z-10">
+<span class="font-label-sm text-label-sm text-secondary tracking-widest uppercase mb-2 block">Climate Control</span>
+<h3 class="font-headline-lg text-headline-lg text-primary">Inverter ACs</h3>
+<p class="text-secondary mt-2 max-w-xs">Silent cooling with peak energy efficiency.</p>
+</div>
+<img class="absolute bottom-[-10%] right-[-10%] w-[70%] object-contain group-hover:scale-105 transition-transform duration-700" data-alt="A clean, studio product photograph of a modern white minimalist split air conditioner. The unit features a matte finish with a subtle digital display. It is set against a solid, very light gray background, highlighting its sleek lines and premium build quality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuClpti4jrylLXtuK0fUbf9vpHNIM83guYpfIEEWHZ0mjI6ikL7o2aUcjE4FLKtkh-l-WxJSXPsRjXFosdGAffjncuUQKUxmMksAXwVtQzVM4ODrewESf2Rwa95PCzbsuSKbOPLOWBWEVFzUVIgiGYU4rGrN6DeUiVqG-sPEGVey_5bzJzwpZYLz03Q-WQVhJWiiF-GyH9riCPcmBE1LZDtaDvDH8J39PzR7BqQ2m_ICEp2vrPRlVLVGHhH13oVU2VCWn1QsQKryhLwQ"/>
+</div>
+<!-- LED TVs -->
+<div class="md:col-span-4 bg-surface-container-low rounded-[24px] p-8 flex flex-col justify-between group overflow-hidden bento-card-shadow relative">
+<div class="z-10">
+<span class="font-label-sm text-label-sm text-secondary tracking-widest uppercase mb-2 block">Entertainment</span>
+<h3 class="font-headline-md text-headline-md text-primary">LED TVs</h3>
+</div>
+<img class="w-full mt-auto group-hover:scale-105 transition-transform duration-700" data-alt="A professional product shot of an ultra-thin OLED television screen showing a minimalist black and white abstract image." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4Y6LFe43U84XzH5zg6XBUS4GIsKp5AAX2L0QKMMSRwgxUH5siu4TsIexBHPBLdpSAIuuwuTmx4oqnU8WUXt6D-_kfVfgWt3mQumbu82q19cb9wq7OJJNi4iq9sGn1MoayKeCPJvACxGp6JKpmPcqztWKlfHYzPRfDftSGv7SHhotj6orKyQzuHUYTO4YFuhy05phjphx75TCJO0DQOSLmi0WMFNSslKoWL_1i6uwzWHZTZWpZedXl8arIN2tWjM--cEjxGGmLizkD"/>
+</div>
+<!-- Refrigerators -->
+<div class="md:col-span-4 bg-surface-container-low rounded-[24px] p-8 flex flex-col justify-between group overflow-hidden bento-card-shadow relative">
+<div class="z-10">
+<span class="font-label-sm text-label-sm text-secondary tracking-widest uppercase mb-2 block">Kitchen</span>
+<h3 class="font-headline-md text-headline-md text-primary">Refrigerators</h3>
+</div>
+<img class="w-full mt-8 group-hover:scale-105 transition-transform duration-700" data-alt="A premium stainless steel refrigerator with a French door design, standing in a brightly lit, minimalist kitchen environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHTgeuZHD7E6Ui4phLuU1MclxwPMLZhCjdROpxqKbMGgJEdPDK2BfvIpqJhWD5GJ913BNkjhFhLxwwIKsKalO-IYn_BstoFO2JfRfZueAMY_nTosrMMfn-9UmIsZzur16Sa4fnOUxCZdLVspbGuV5EOzBBk-_vWkMIiGuWxIwISW11Cd8R47k2RetvDfXj5URfyb8KsgbmonSoSJELpmxrbYZS__ID0FAZavKmki8tPoONZIe2JYVHSJX14aDTP921XEGP9OK_dIi6"/>
+</div>
+<!-- Washing Machines -->
+<div class="md:col-span-8 bg-surface-container-low rounded-[24px] p-10 flex flex-col justify-between group overflow-hidden bento-card-shadow relative">
+<div class="z-10">
+<span class="font-label-sm text-label-sm text-secondary tracking-widest uppercase mb-2 block">Laundry</span>
+<h3 class="font-headline-lg text-headline-lg text-primary">Washing Machines</h3>
+<p class="text-secondary mt-2 max-w-xs">Intelligent fabric care with AI-driven cycles.</p>
+</div>
+<img class="absolute bottom-[-10%] right-[-5%] w-[60%] object-contain group-hover:translate-y-[-10px] transition-transform duration-700" data-alt="A sleek, dark gray front-load washing machine with a chrome-rimmed door and a minimalist digital control panel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBaUgFNN58S61v15VMGrHi9R-tQ4OAm_54Pg9UctLZgBpxdobzCixzq2QuXgTMLGiiysUeWsF3nkfCfVteQcG5CaGG1uNkYdk7c9SJOae440ZBkE0Pxno43PL5FtPyCg8fkpPWs3TpRDpKeomNMZHlmsWsBjgvuyX2O0766vXZwIRJVOeOqu20phiOfC1WsLoSskOTI57YUoSd8RaI2GzRSlZY-_sW3HizvHaPJPHm2lKVLWRmHegLtDLux9trJGVrsRSnRSqxJyuRW"/>
+</div>
+</div>
+</section>
+<!-- Interactive Rotary Category Showcase -->
+<section class="py-section-gap px-container-margin max-w-[1440px] mx-auto overflow-hidden" id="rotary-showcase">
+<div class="mb-16 text-center">
+<h2 class="font-headline-lg text-headline-lg text-primary mb-2">Interactive Rotary Category Showcase</h2>
+<p class="text-secondary">Precision selection through mechanical inspiration.</p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-[600px]">
+<!-- Left Column: Showcase -->
+<div class="relative h-full min-h-[400px] lg:min-h-[600px] rounded-[32px] overflow-hidden bento-card-shadow group">
+<div class="absolute inset-0 w-full h-full" id="showcase-content">
+<img alt="Showcase Category Image" class="w-full h-full object-cover transition-all duration-700 ease-in-out opacity-100" id="active-image" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBt7VV7blG8cFGDDNlxgQaS3fRiJ_cyCOxB7t58YRRU3tLtfgvNag8_bBfiLoU8f01ybtiNiP7dw3dwD5kbwlTX7qVtLsZhToT8ecHGhEFx71QSsRWJ1YfRJsTcc4grrH2ww11e8F_VPlfnZuMPaC1pOueC3jvewRDHxcdxZsX9MtJwUCPxAb7pW72zB7CnY0V8h9FtsIweZclKI1qYnC87LosQUD4P8UCyQevwq9cu7gw0MHWhJH2A9bcjRKMGHjLLZsK8NZ9H6xof"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+<div class="absolute bottom-12 left-12 right-12 z-10 transition-all duration-500 ease-in-out" id="showcase-text">
+<h3 class="font-display-lg text-display-lg-mobile md:text-[48px] text-white mb-4" id="active-category-name">Inverter ACs</h3>
+<a class="inline-flex items-center gap-2 text-white font-label-md hover:gap-4 transition-all" href="#">
+                            Explore Category <span class="material-symbols-outlined">arrow_forward</span>
+</a>
+</div>
+</div>
+</div>
+<!-- Right Column: Interactive Dial -->
+<div class="flex items-center justify-center relative py-12">
+<!-- Watch Bezel Inspired Dial -->
+<div class="relative w-[320px] h-[320px] md:w-[480px] md:h-[480px]">
+<!-- Outer Decorative Bezel -->
+<div class="absolute inset-0 rounded-full bezel-texture border-[8px] border-surface-container-highest"></div>
+<!-- Inner Rotating Dial -->
+<div class="rotary-dial absolute inset-0 rounded-full cursor-grab active:cursor-grabbing" id="dial">
+<!-- Categories around the circle -->
+<!-- 0deg: AC -->
+<div class="dial-item absolute top-4 left-1/2 -translate-x-1/2" data-index="0">
+<button class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white border-4 border-primary shadow-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 group overflow-hidden">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">ac_unit</span>
+</button>
+</div>
+<!-- 90deg: Refrigerator -->
+<div class="dial-item absolute right-4 top-1/2 -translate-y-1/2" data-index="1">
+<button class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white border-2 border-surface-container-highest shadow-md flex items-center justify-center transition-all hover:scale-110 active:scale-95 group overflow-hidden">
+<span class="material-symbols-outlined text-secondary group-hover:text-primary transition-colors">kitchen</span>
+</button>
+</div>
+<!-- 180deg: TV -->
+<div class="dial-item absolute bottom-4 left-1/2 -translate-x-1/2" data-index="2">
+<button class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white border-2 border-surface-container-highest shadow-md flex items-center justify-center transition-all hover:scale-110 active:scale-95 group overflow-hidden">
+<span class="material-symbols-outlined text-secondary group-hover:text-primary transition-colors">tv</span>
+</button>
+</div>
+<!-- 270deg: Washing Machine -->
+<div class="dial-item absolute left-4 top-1/2 -translate-y-1/2" data-index="3">
+<button class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white border-2 border-surface-container-highest shadow-md flex items-center justify-center transition-all hover:scale-110 active:scale-95 group overflow-hidden">
+<span class="material-symbols-outlined text-secondary group-hover:text-primary transition-colors">local_laundry_service</span>
+</button>
+</div>
+</div>
+<!-- Center Detail / Logo -->
+<div class="absolute inset-[35%] rounded-full bg-surface-container-lowest flex items-center justify-center shadow-inner border border-surface-container-highest">
+<div class="text-center">
+<div class="text-[10px] uppercase tracking-[0.2em] text-secondary mb-1">Precision</div>
+<div class="font-bold text-lg tracking-tighter">LUMIÈRE</div>
+</div>
+</div>
+<!-- Focal Point Indicator -->
+<div class="absolute top-[-15px] left-1/2 -translate-x-1/2 z-20">
+<div class="w-1 h-8 bg-primary rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Featured Products Section -->
+<section class="py-section-gap bg-surface-container-low">
+<div class="px-container-margin max-w-[1440px] mx-auto">
+<div class="flex justify-between items-end mb-16">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-primary">Featured Innovations</h2>
+<p class="text-secondary mt-2">Performance met with unparalleled aesthetic.</p>
+</div>
+<a class="text-primary font-label-md flex items-center gap-2 hover:gap-4 transition-all" href="#">
+                    View All <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-grid-gutter">
+<!-- Card 1: Haier 1.5 Ton AC -->
+<div class="bg-surface-container-lowest p-6 rounded-[24px] bento-card-shadow group transition-all hover:scale-[1.01]">
+<div class="aspect-square bg-surface-container rounded-xl overflow-hidden mb-6 flex items-center justify-center p-8">
+<img class="max-h-full object-contain group-hover:scale-110 transition-transform duration-500" data-alt="A studio product photo of a premium 1.5 Ton Inverter AC unit." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWyvwms9Y5eGSf0obuTUnLB2rnovpoSIWgClCo-oOdeDuXZWKiH2puagK581X7dePt54C7ymn8KfpEy5afAnRf8Os2O9iFSCY7g3wIBDnd3Idr4KjromToKBDgf8Ij2kOlFDQdRQWZPpT_nhiORM9FI3oa68LiQj0qcdQ8ZsF7Gl7xYair_OB5JQ4tWFQwebRl5xkynhVZHHxz_5CJtymkMrag3kUv8u8NF3M_X9DsiDgfMxzECljXTCnd1LxeNFLtXZctwv3Fbiy-"/>
+</div>
+<div class="flex gap-2 mb-4 flex-wrap">
+<span class="px-3 py-1 border border-primary/10 rounded-full font-label-sm text-label-sm">1.5 Ton</span>
+<span class="px-3 py-1 border border-primary/10 rounded-full font-label-sm text-label-sm">Inverter</span>
+<span class="px-3 py-1 border border-primary/10 rounded-full font-label-sm text-label-sm">10 Yrs Warranty</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-primary mb-2">Haier Precision AC</h4>
+<p class="text-primary font-bold text-headline-md">$699</p>
+<button class="w-full mt-6 bg-primary text-on-primary py-3 rounded-xl font-label-md opacity-0 group-hover:opacity-100 transition-opacity">Add to Bag</button>
+</div>
+<!-- Card 2: Smart LED TV -->
+<div class="bg-surface-container-lowest p-6 rounded-[24px] bento-card-shadow group transition-all hover:scale-[1.01]">
+<div class="aspect-square bg-surface-container rounded-xl overflow-hidden mb-6 flex items-center justify-center p-8">
+<img class="max-h-full object-contain group-hover:scale-110 transition-transform duration-500" data-alt="A high-end 65 inch OLED 4K television displaying a vibrant, high-contrast landscape image." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMeoNhXIwfjkIpIeLBSUBgvG6Ki7VpFIcOFSv37CPFE9bVpGXwy-kXw1Ws1SxwhXnooIz7z0GxTcU6goZCKES3PdH8qd_fE1As6L6a56M3RE4QXxQ0IfdUX0SbQ_fC4eMnpLsJgL4Wf0vVcAECGcXnXZdwOVWawGCevORUM1DrwsMJDYBfjvIU18Ie4YoYQPEpuT-AcQuWNwsTVh6X1pigSAmj9v8pt_77YzNhcdZf_jvvch6Bud9mVsNfKO-kjcghkKz75qoiJV73"/>
+</div>
+<div class="flex gap-2 mb-4 flex-wrap">
+<span class="px-3 py-1 border border-primary/10 rounded-full font-label-sm text-label-sm">4K Ultra HD</span>
+<span class="px-3 py-1 border border-primary/10 rounded-full font-label-sm text-label-sm">65 Inch</span>
+<span class="px-3 py-1 border border-primary/10 rounded-full font-label-sm text-label-sm">OLED</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-primary mb-2">Smart OLED Display</h4>
+<p class="text-primary font-bold text-headline-md">$1,299</p>
+<button class="w-full mt-6 bg-primary text-on-primary py-3 rounded-xl font-label-md opacity-0 group-hover:opacity-100 transition-opacity">Add to Bag</button>
+</div>
+<!-- Card 3: French Door Refrigerator -->
+<div class="bg-surface-container-lowest p-6 rounded-[24px] bento-card-shadow group transition-all hover:scale-[1.01]">
+<div class="aspect-square bg-surface-container rounded-xl overflow-hidden mb-6 flex items-center justify-center p-8">
+<img class="max-h-full object-contain group-hover:scale-110 transition-transform duration-500" data-alt="A large French Door refrigerator with a matte black finish." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOrws-_9myUNhJ3M64j_pA6uyi0zuTvhFj6RIaEYCJNPaNtBlKNG1D3gSTHpeX0QAOm3rdALFGvd74V5O_aAZbQW50ZDH1QiuR470ROB4n2srmCNAEuqTnoYFJEx099h3KoyKJuYPYv8XwxA3oRN5IwgcWQJ9As8MjnRVdBHkqLuxB4ouY1-iAzSNUekyfV6z30KpFfprwcCcWM4MJGPmDD0tEmgbSzwwuqcJMchXd5ayC5e_mLwvf5Jip_GCaYsPicqQQ89T9o-bD"/>
+</div>
+<div class="flex gap-2 mb-4 flex-wrap">
+<span class="px-3 py-1 border border-primary/10 rounded-full font-label-sm text-label-sm">500L</span>
+<span class="px-3 py-1 border border-primary/10 rounded-full font-label-sm text-label-sm">Energy Star</span>
+<span class="px-3 py-1 border border-primary/10 rounded-full font-label-sm text-label-sm">Smart Cool</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-primary mb-2">French Door Cooling</h4>
+<p class="text-primary font-bold text-headline-md">$1,899</p>
+<button class="w-full mt-6 bg-primary text-on-primary py-3 rounded-xl font-label-md opacity-0 group-hover:opacity-100 transition-opacity">Add to Bag</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Support / CTA Section -->
+<section class="py-section-gap px-container-margin max-w-[1440px] mx-auto text-center">
+<div class="bg-primary rounded-[32px] p-16 md:p-24 text-on-primary">
+<h2 class="font-display-lg text-display-lg-mobile md:text-display-lg mb-8">Elevate Your Living.</h2>
+<p class="font-body-lg text-body-lg text-on-primary/60 mb-12 max-w-xl mx-auto">Join the LUMIÈRE experience today and transform your home with precision-engineered technology.</p>
+<div class="flex flex-col md:flex-row justify-center gap-6">
+<button class="bg-on-primary text-primary px-12 py-4 rounded-xl font-label-md hover:bg-surface transition-colors">Browse Catalog</button>
+<button class="border border-on-primary/30 text-on-primary px-12 py-4 rounded-xl font-label-md hover:bg-white/10 transition-colors">Find a Store</button>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="w-full py-section-gap px-container-margin flex flex-col md:flex-row justify-between items-start gap-grid-gutter bg-surface-container-lowest border-t border-surface-container-highest">
+<div class="max-w-xs">
+<div class="font-headline-md text-headline-md font-bold text-primary mb-6">LUMIERE</div>
+<p class="text-secondary font-body-md">Refining modern living through technical excellence and minimalist industrial design.</p>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-12 w-full md:w-auto">
+<div class="flex flex-col gap-4">
+<h5 class="font-label-md text-primary font-bold">Products</h5>
+<a class="text-secondary font-label-md hover:underline transition-all" href="#">Kitchen</a>
+<a class="text-secondary font-label-md hover:underline transition-all" href="#">Climate</a>
+<a class="text-secondary font-label-md hover:underline transition-all" href="#">Entertainment</a>
+<a class="text-secondary font-label-md hover:underline transition-all" href="#">Laundry</a>
+</div>
+<div class="flex flex-col gap-4">
+<h5 class="font-label-md text-primary font-bold">Company</h5>
+<a class="text-secondary font-label-md hover:underline transition-all" href="#">Sustainability</a>
+<a class="text-secondary font-label-md hover:underline transition-all" href="#">Our Story</a>
+<a class="text-secondary font-label-md hover:underline transition-all" href="#">Careers</a>
+</div>
+<div class="flex flex-col gap-4">
+<h5 class="font-label-md text-primary font-bold">Support</h5>
+<a class="text-secondary font-label-md hover:underline transition-all" href="#">Support Center</a>
+<a class="text-secondary font-label-md hover:underline transition-all" href="#">Contact Us</a>
+<a class="text-secondary font-label-md hover:underline transition-all" href="#">Manuals</a>
+</div>
+<div class="flex flex-col gap-4">
+<h5 class="font-label-md text-primary font-bold">Legal</h5>
+<a class="text-secondary font-label-md hover:underline transition-all" href="#">Privacy Policy</a>
+<a class="text-secondary font-label-md hover:underline transition-all" href="#">Terms of Service</a>
+</div>
+</div>
+<div class="w-full mt-12 pt-8 border-t border-surface-container flex flex-col md:flex-row justify-between items-center gap-4">
+<p class="text-secondary text-label-sm font-label-sm">© 2024 Lumière Appliances. All rights reserved.</p>
+<div class="flex gap-6">
+<a class="text-primary opacity-60 hover:opacity-100 transition-opacity" href="#"><span class="material-symbols-outlined">public</span></a>
+<a class="text-primary opacity-60 hover:opacity-100 transition-opacity" href="#"><span class="material-symbols-outlined">alternate_email</span></a>
+<a class="text-primary opacity-60 hover:opacity-100 transition-opacity" href="#"><span class="material-symbols-outlined">share</span></a>
+</div>
+</div>
+</footer>
+<script>
+        // Data for Rotary Showcase
+        const categories = [
+            { name: 'Inverter ACs', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBt7VV7blG8cFGDDNlxgQaS3fRiJ_cyCOxB7t58YRRU3tLtfgvNag8_bBfiLoU8f01ybtiNiP7dw3dwD5kbwlTX7qVtLsZhToT8ecHGhEFx71QSsRWJ1YfRJsTcc4grrH2ww11e8F_VPlfnZuMPaC1pOueC3jvewRDHxcdxZsX9MtJwUCPxAb7pW72zB7CnY0V8h9FtsIweZclKI1qYnC87LosQUD4P8UCyQevwq9cu7gw0MHWhJH2A9bcjRKMGHjLLZsK8NZ9H6xof' },
+            { name: 'Smart Refrigerators', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBRORX1nuj6i2rixPISpU8rQy67b0NiuNSlpOTUIrZUw2TMRSZtIfnbtfWRDbOj83G4-MmZ-6do_vxYq8xdBWT3Q64mbo0qP2us49-0g5RJeLYgImTNoZgMBQ40e32liSi2izjGPGNhzPu5qAQVtZRcEJVNUwadAAXLuSIQ0LV3FCs7nrtl1ZN-J2T_bPFKUaeThDWxEE0QYO2FnPf2W9my0r_A5jLrIoxJRyOnJHHR84IUdRu6OEIN7lzpjkC_OL1kE0lLW76HAP3T' },
+            { name: 'OLED Entertainment', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCu6-MTESjnBFTQVznftG6eSLEw55QZMiFNMWayiAU_RVXjrKhNAOg7jd8m4vQLCCEQfBP6tQCRUPDwsFKZzDwCGS--ClCKLkdmbuygceg3MckxFE1LXasKsRtRaPbGG_upFn59VolMVmAItiwdLk5-RJgxHdO7-kwzqIPZqsR71xrr31UeUoD3o2yONovWKsiQUOIxu2ganXIDJmr6zw6iYzvG_OQsi3vYC3f86Hcv-fPUErL0RCAD1EOhYHtlyz07J2eYFWO0UfZj' },
+            { name: 'Precision Washing', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDRqHiq8a98Xd6mLLKvAuZ4yHOF96OWhrk9ccsEhQy-CAjjrABbeMLTNLxTtG_75j2RTg-pq_sc6yoSnWyl6-sDu9-x2d6j-kqg8qk7ZGjlG5vIccdU5SJaM3rsnSugXWqaUTOfuVR-kLVKqItFcbmcGjxZtRipHTsRMUeYiO6bX-m4GFwcMID8HZofNwDuKo_QJubUDpZ1feDHbpx17fppwNY64AEyX10r27_sbt4ZO6DaDRQ9psYnukgznkILN_GauAbdo6jCrsVO' }
+        ];
+
+        let currentRotation = 0;
+        let activeIndex = 0;
+
+        const dial = document.getElementById('dial');
+        const activeImage = document.getElementById('active-image');
+        const activeName = document.getElementById('active-category-name');
+        const showcaseText = document.getElementById('showcase-text');
+        const dialItems = document.querySelectorAll('.dial-item');
+
+        function updateShowcase(index) {
+            // Update Text & Image with transition
+            activeImage.style.opacity = '0';
+            activeImage.style.transform = 'scale(1.05)';
+            showcaseText.style.opacity = '0';
+            showcaseText.style.transform = 'translateY(20px)';
+
+            setTimeout(() => {
+                activeImage.src = categories[index].image;
+                activeName.textContent = categories[index].name;
+                
+                activeImage.style.opacity = '1';
+                activeImage.style.transform = 'scale(1)';
+                showcaseText.style.opacity = '1';
+                showcaseText.style.transform = 'translateY(0)';
+            }, 300);
+
+            // Update icon states
+            dialItems.forEach((item, i) => {
+                const btn = item.querySelector('button');
+                const icon = item.querySelector('.material-symbols-outlined');
+                if (i === index) {
+                    btn.classList.add('border-primary');
+                    btn.classList.remove('border-surface-container-highest');
+                    icon.classList.add('text-primary');
+                    icon.classList.remove('text-secondary');
+                } else {
+                    btn.classList.remove('border-primary');
+                    btn.classList.add('border-surface-container-highest');
+                    icon.classList.remove('text-primary');
+                    icon.classList.add('text-secondary');
+                }
+            });
+        }
+
+        function rotateTo(index) {
+            const diff = index - activeIndex;
+            // Shortest path logic
+            let rotationChange = diff * -90;
+            if (rotationChange < -180) rotationChange += 360;
+            if (rotationChange > 180) rotationChange -= 360;
+            
+            currentRotation += rotationChange;
+            activeIndex = index;
+            
+            document.documentElement.style.setProperty('--dial-rotation', `${currentRotation}deg`);
+            updateShowcase(index);
+        }
+
+        // Add click events to dial buttons
+        dialItems.forEach((item, i) => {
+            item.addEventListener('click', () => {
+                rotateTo(i);
+            });
+        });
+
+        // Basic Drag handling for Dial
+        let isDragging = false;
+        let startAngle = 0;
+        let startRotation = 0;
+
+        dial.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            const rect = dial.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            startAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * (180 / Math.PI);
+            startRotation = currentRotation;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const rect = dial.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * (180 / Math.PI);
+            const delta = angle - startAngle;
+            currentRotation = startRotation + delta;
+            document.documentElement.style.setProperty('--dial-rotation', `${currentRotation}deg`);
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (!isDragging) return;
+            isDragging = false;
+            // Snap to nearest 90deg
+            const normalizedRotation = Math.round(currentRotation / 90) * 90;
+            currentRotation = normalizedRotation;
+            document.documentElement.style.setProperty('--dial-rotation', `${currentRotation}deg`);
+            
+            // Calculate active index from rotation (0, -90, -180, -270...)
+            let index = Math.round(-currentRotation / 90) % 4;
+            if (index < 0) index += 4;
+            activeIndex = index;
+            updateShowcase(index);
+        });
+
+        // Micro-interactions for header blur and scroll effects
+        window.addEventListener('scroll', () => {
+            const nav = document.querySelector('nav');
+            if (window.scrollY > 50) {
+                nav.classList.add('py-2', 'shadow-sm');
+                nav.classList.remove('py-4');
+            } else {
+                nav.classList.remove('py-2', 'shadow-sm');
+                nav.classList.add('py-4');
+            }
+        });
+
+        // Animation on reveal observer
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('opacity-100', 'translate-y-0');
+                    entry.target.classList.remove('opacity-0', 'translate-y-10');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.bento-card-shadow, .featured-card').forEach(el => {
+            el.classList.add('transition-all', 'duration-700', 'opacity-0', 'translate-y-10');
+            observer.observe(el);
+        });
+    </script>
+</body></html>
