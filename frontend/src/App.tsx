@@ -6,12 +6,18 @@ import Preloader from './components/Preloader';
 import Home from './pages/Home';
 import Checkout from './pages/Checkout';
 import AdminDashboard from './pages/AdminDashboard';
+import ProductDetails from './pages/ProductDetails';
+import CategoriesPage from './pages/CategoriesPage';
+import CategoryProductsPage from './pages/CategoryProductsPage';
+import ContactPage from './pages/ContactPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import ScrollToTop from './components/ScrollToTop';
 import { PrivacyPolicy, TermsOfService, RefundPolicy } from './pages/PolicyPages';
 
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <div className="min-h-screen flex flex-col">
         <Preloader />
         <Toaster position="top-center" />
@@ -29,10 +35,13 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route path="/product/:slug" element={<ProductDetails />} />
+            <Route path="/categories" element={<CategoriesPage />} />
+            <Route path="/category/:slug" element={<CategoryProductsPage />} />
+            <Route path="/contact" element={<ContactPage />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
             <Route path="/refund-policy" element={<RefundPolicy />} />
-            {/* Other routes will be added here later */}
           </Routes>
         </div>
 

@@ -1,14 +1,28 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { getSiteSetting } from '../lib/supabase';
 import { Link } from 'react-router-dom';
 
 export default function Hero() {
   const [heroImage, setHeroImage] = useState("https://lh3.googleusercontent.com/aida-public/AB6AXuArAnYFnRG9AuBnIfZ5aMZTkaYXMC2y6vzgGcNplXeW_GuKhewTBKpun_jl7juaZug9dYMTAzU2BY82sCKDcrZm03e4looBPySqERlALS1FITinGr6Jtz3u1Ywn8fmULcOjxyJhvJKj2YyAbDamf8TgW_2qM6tIlhfIsbQdtA6q0jGF9PionEvfITkFD2NFbJ5sXZwWjPt15KIb9tl-zmLUeFQ00-HMC39-YajtvDkMJfHPcsLsln6CBfPSqO7oAnqVaTHot7NCWMR8");
+  const [heroTitle, setHeroTitle] = useState("Smart Appliances for a Smarter Home");
+  const [heroSubtitle, setHeroSubtitle] = useState("Experience the pinnacle of engineering and minimalist design. Precision-crafted for those who demand excellence.");
 
   useEffect(() => {
-    supabase.from('site_settings').select('value').eq('key', 'hero_image_url').single().then(({ data }) => {
-      if (data?.value) setHeroImage(data.value);
-    });
+    async function fetchHeroData() {
+      try {
+        const [img, title, subtitle] = await Promise.all([
+          getSiteSetting('hero_image_url'),
+          getSiteSetting('hero_title'),
+          getSiteSetting('hero_subtitle')
+        ]);
+        if (img) setHeroImage(img);
+        if (title) setHeroTitle(title);
+        if (subtitle) setHeroSubtitle(subtitle);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    fetchHeroData();
   }, []);
 
   return (
@@ -30,16 +44,16 @@ export default function Hero() {
               Ali Electronics
             </p>
             <h1 className="font-bold tracking-tight text-3xl sm:text-4xl text-neutral-900 mb-4 leading-[1.1]">
-              Smart Appliances for a Smarter Home
+              {heroTitle}
             </h1>
             <p className="text-sm text-neutral-600 mb-8 max-w-sm leading-relaxed">
-              Experience the pinnacle of engineering and minimalist design. Precision-crafted for those who demand excellence.
+              {heroSubtitle}
             </p>
             <div className="flex flex-row gap-3">
-              <Link to="/checkout" className="bg-neutral-900 text-white px-7 py-3 rounded-xl font-semibold text-sm hover:bg-neutral-700 active:scale-95 transition-all">
+              <Link to="/categories" className="bg-neutral-900 text-white px-7 py-3 rounded-xl font-semibold text-sm hover:bg-neutral-700 active:scale-95 transition-all">
                 Shop Now
               </Link>
-              <Link to="/#categories" className="border border-neutral-300 text-neutral-900 px-7 py-3 rounded-xl font-semibold text-sm hover:bg-neutral-100 active:scale-95 transition-all bg-white/50 backdrop-blur-sm">
+              <Link to="/categories" className="border border-neutral-300 text-neutral-900 px-7 py-3 rounded-xl font-semibold text-sm hover:bg-neutral-100 active:scale-95 transition-all bg-white/50 backdrop-blur-sm">
                 View Catalog
               </Link>
             </div>
@@ -69,20 +83,20 @@ export default function Hero() {
               Ali Electronics
             </p>
             <h1 className="font-bold tracking-tight text-5xl lg:text-[56px] xl:text-[64px] text-neutral-900 mb-6 leading-[1.05]">
-              Smart Appliances<br /> for a Smarter Home
+              {heroTitle}
             </h1>
             <p className="text-base text-neutral-600 mb-10 max-w-md leading-relaxed">
-              Experience the pinnacle of engineering and minimalist design. Precision-crafted for those who demand excellence.
+              {heroSubtitle}
             </p>
             <div className="flex flex-row gap-4">
               <Link
-                to="/checkout"
+                to="/categories"
                 className="bg-neutral-900 text-white px-8 py-3.5 rounded-xl font-semibold text-sm hover:bg-neutral-700 active:scale-95 transition-all"
               >
                 Shop Now
               </Link>
               <Link
-                to="/#categories"
+                to="/categories"
                 className="border border-neutral-300 text-neutral-900 px-8 py-3.5 rounded-xl font-semibold text-sm hover:bg-neutral-100 active:scale-95 transition-all"
               >
                 View Catalog

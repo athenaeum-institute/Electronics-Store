@@ -1,6 +1,8 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function Footer() {
+  const navigate = useNavigate();
+
   return (
     <>
       {/* Support / CTA Section */}
@@ -11,10 +13,16 @@ export default function Footer() {
             Join the Ali Electronics experience today and transform your home with precision-engineered technology.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 md:gap-6 w-full sm:w-auto px-4 sm:px-0">
-            <button className="bg-on-primary text-primary px-8 md:px-12 py-3 md:py-4 rounded-xl font-label-md font-bold hover:bg-surface transition-colors cursor-pointer w-full sm:w-auto">
+            <button 
+              onClick={() => navigate('/categories')}
+              className="bg-on-primary text-primary px-8 md:px-12 py-3 md:py-4 rounded-xl font-label-md font-bold hover:bg-surface transition-colors cursor-pointer w-full sm:w-auto"
+            >
               Browse Catalog
             </button>
-            <button className="border border-on-primary/30 text-on-primary px-8 md:px-12 py-3 md:py-4 rounded-xl font-label-md font-bold hover:bg-white/10 transition-colors cursor-pointer w-full sm:w-auto">
+            <button 
+              onClick={() => navigate('/contact')}
+              className="border border-on-primary/30 text-on-primary px-8 md:px-12 py-3 md:py-4 rounded-xl font-label-md font-bold hover:bg-white/10 transition-colors cursor-pointer w-full sm:w-auto"
+            >
               Find a Store
             </button>
           </div>

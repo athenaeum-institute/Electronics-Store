@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Search, ShoppingBag, User, Menu, X, LogOut, Package, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import AuthModal from './AuthModal';
+import SearchPanel from './SearchPanel';
 import { useStore } from '../store/useStore';
 import { supabase } from '../lib/supabase';
 import { toast } from 'react-hot-toast';
@@ -11,6 +12,7 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isSearchPanelOpen, setIsSearchPanelOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { user, isAdmin, cart, setUser, setIsAdmin } = useStore();
@@ -57,7 +59,7 @@ export default function Header() {
       .select('is_admin')
       .eq('id', currentUser.id)
       .single();
-    setIsAdmin(data?.is_admin || false);
+    setIsAdmin(data ? (data as any).is_admin : false);
   };
 
   // Close dropdown on outside click
@@ -79,9 +81,9 @@ export default function Header() {
 
   const navLinks = [
     { name: 'Home', path: '/' },
-    { name: 'Categories', path: '/#categories' },
+    { name: 'Categories', path: '/categories' },
     { name: 'Cart', path: '/checkout' },
-    { name: 'Contact', path: '/#contact' },
+    { name: 'Contact', path: '/contact' },
   ];
 
   return (
@@ -123,7 +125,10 @@ export default function Header() {
           
           {/* Actions */}
           <div className="flex items-center gap-4">
-            <button className="scale-95 hover:scale-100 active:scale-90 transition-all text-neutral-600 hover:text-neutral-900">
+            <button 
+              onClick={() => setIsSearchPanelOpen(true)}
+              className="scale-95 hover:scale-100 active:scale-90 transition-all text-neutral-600 hover:text-neutral-900"
+            >
               <Search className="w-5 h-5" />
             </button>
             
@@ -253,6 +258,9 @@ export default function Header() {
 
       {/* Auth Modal */}
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+
+      {/* Search Panel */}
+      <SearchPanel isOpen={isSearchPanelOpen} onClose={() => setIsSearchPanelOpen(false)} />
     </>
   );
 }

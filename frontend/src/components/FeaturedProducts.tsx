@@ -1,122 +1,153 @@
+import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import { toast } from 'react-hot-toast';
+import { getFeaturedProducts } from '../lib/supabase';
 
 export default function FeaturedProducts() {
   const addToCart = useStore((state) => state.addToCart);
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const data = await getFeaturedProducts();
+        setProducts(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProducts();
+  }, []);
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (!scrollRef.current) return;
+    scrollRef.current.scrollBy({ left: direction === 'right' ? 300 : -300, behavior: 'smooth' });
+  };
+
   return (
     <section className="pt-8 pb-8 sm:pt-16 md:py-section-gap bg-surface-container-low">
       <div className="px-6 md:px-container-margin max-w-[1440px] mx-auto">
+        {/* Section Header — unchanged */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 md:mb-12">
           <div className="mb-4 md:mb-0 text-left">
             <h2 className="text-2xl font-bold tracking-tight text-neutral-900 text-left sm:text-3xl md:text-4xl lg:text-[40px]">Signature Products</h2>
             <p className="text-xs sm:text-sm md:text-base text-neutral-500 text-left mt-1 md:mt-2 max-w-[290px] md:max-w-[600px] leading-relaxed">The pinnacle of our design philosophy. Uncompromising performance wrapped in minimalist aesthetics.</p>
           </div>
-          <button className="flex items-center gap-2 text-primary font-label-md hover:gap-4 transition-all group">
+          <Link to="/categories" className="flex items-center gap-2 text-primary font-label-md hover:gap-4 transition-all group">
             View All <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
-          </button>
+          </Link>
         </div>
 
-        <div className="flex md:grid md:grid-cols-3 gap-4 md:gap-grid-gutter overflow-x-auto md:overflow-visible snap-x snap-mandatory pb-8 pt-2 hide-scrollbar -mx-6 px-6 md:mx-0 md:px-0">
-          {/* Card 1: Haier 1.5 Ton AC */}
-          <div className="min-w-[85vw] sm:min-w-[320px] md:min-w-0 snap-center bg-surface-container-lowest p-5 md:p-6 rounded-[24px] bento-card-shadow group transition-all hover:scale-[1.01]">
-            <div className="aspect-square bg-surface-container rounded-xl overflow-hidden mb-4 md:mb-6 flex items-center justify-center p-4 md:p-8">
-              <img
-                className="max-h-full object-contain group-hover:scale-110 transition-transform duration-500"
-                alt="Haier AC"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWyvwms9Y5eGSf0obuTUnLB2rnovpoSIWgClCo-oOdeDuXZWKiH2puagK581X7dePt54C7ymn8KfpEy5afAnRf8Os2O9iFSCY7g3wIBDnd3Idr4KjromToKBDgf8Ij2kOlFDQdRQWZPpT_nhiORM9FI3oa68LiQj0qcdQ8ZsF7Gl7xYair_OB5JQ4tWFQwebRl5xkynhVZHHxz_5CJtymkMrag3kUv8u8NF3M_X9DsiDgfMxzECljXTCnd1LxeNFLtXZctwv3Fbiy-"
-              />
-            </div>
-            <div className="flex gap-2 mb-4 flex-wrap">
-              <span className="px-3 py-1 border border-primary/10 rounded-full font-label-sm text-label-sm">1.5 Ton</span>
-              <span className="px-3 py-1 border border-primary/10 rounded-full font-label-sm text-label-sm">Inverter</span>
-              <span className="px-3 py-1 border border-primary/10 rounded-full font-label-sm text-label-sm">10 Yrs Warranty</span>
-            </div>
-            <h4 className="font-headline-md text-lg md:text-headline-md text-primary mb-1 md:mb-2">Haier Precision AC</h4>
-            <p className="text-primary font-bold text-xl md:text-headline-md">Rs. 185,000</p>
-            <button
-              onClick={() => {
-                addToCart({
-                  id: 'product-1',
-                  title: 'Haier Precision AC',
-                  price: 185000,
-                  category: 'Climate Control',
-                  stock: 10,
-                  image_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAWyvwms9Y5eGSf0obuTUnLB2rnovpoSIWgClCo-oOdeDuXZWKiH2puagK581X7dePt54C7ymn8KfpEy5afAnRf8Os2O9iFSCY7g3wIBDnd3Idr4KjromToKBDgf8Ij2kOlFDQdRQWZPpT_nhiORM9FI3oa68LiQj0qcdQ8ZsF7Gl7xYair_OB5JQ4tWFQwebRl5xkynhVZHHxz_5CJtymkMrag3kUv8u8NF3M_X9DsiDgfMxzECljXTCnd1LxeNFLtXZctwv3Fbiy-'
-                });
-                toast.success('Added Haier Precision AC to bag');
-              }}
-              className="w-full mt-4 md:mt-6 bg-primary text-on-primary py-2 md:py-3 rounded-xl font-label-md opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-            >
-              Add to Bag
-            </button>
-          </div>
+        {/* Carousel Wrapper */}
+        <div className="relative">
+          {/* Left Arrow — desktop only */}
+          <button
+            onClick={() => scroll('left')}
+            className="hidden md:flex absolute -left-5 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-primary text-on-primary items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all"
+            aria-label="Scroll left"
+          >
+            <span className="material-symbols-outlined text-[20px]">chevron_left</span>
+          </button>
 
-          {/* Card 2: Smart LED TV */}
-          <div className="min-w-[85vw] sm:min-w-[320px] md:min-w-0 snap-center bg-surface-container-lowest p-5 md:p-6 rounded-[24px] bento-card-shadow group transition-all hover:scale-[1.01]">
-            <div className="aspect-square bg-surface-container rounded-xl overflow-hidden mb-4 md:mb-6 flex items-center justify-center p-4 md:p-8">
-              <img
-                className="max-h-full object-contain group-hover:scale-110 transition-transform duration-500"
-                alt="Smart TV"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMeoNhXIwfjkIpIeLBSUBgvG6Ki7VpFIcOFSv37CPFE9bVpGXwy-kXw1Ws1SxwhXnooIz7z0GxTcU6goZCKES3PdH8qd_fE1As6L6a56M3RE4QXxQ0IfdUX0SbQ_fC4eMnpLsJgL4Wf0vVcAECGcXnXZdwOVWawGCevORUM1DrwsMJDYBfjvIU18Ie4YoYQPEpuT-AcQuWNwsTVh6X1pigSAmj9v8pt_77YzNhcdZf_jvvch6Bud9mVsNfKO-kjcghkKz75qoiJV73"
-              />
-            </div>
-            <div className="flex gap-2 mb-4 flex-wrap">
-              <span className="px-3 py-1 border border-primary/10 rounded-full font-label-sm text-label-sm">4K Ultra HD</span>
-              <span className="px-3 py-1 border border-primary/10 rounded-full font-label-sm text-label-sm">65 Inch</span>
-              <span className="px-3 py-1 border border-primary/10 rounded-full font-label-sm text-label-sm">OLED</span>
-            </div>
-            <h4 className="font-headline-md text-lg md:text-headline-md text-primary mb-1 md:mb-2">Smart OLED Display</h4>
-            <p className="text-primary font-bold text-xl md:text-headline-md">Rs. 350,000</p>
-            <button
-              onClick={() => {
-                addToCart({
-                  id: 'product-2',
-                  title: 'Smart OLED Display',
-                  price: 350000,
-                  category: 'Entertainment',
-                  stock: 5,
-                  image_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDMeoNhXIwfjkIpIeLBSUBgvG6Ki7VpFIcOFSv37CPFE9bVpGXwy-kXw1Ws1SxwhXnooIz7z0GxTcU6goZCKES3PdH8qd_fE1As6L6a56M3RE4QXxQ0IfdUX0SbQ_fC4eMnpLsJgL4Wf0vVcAECGcXnXZdwOVWawGCevORUM1DrwsMJDYBfjvIU18Ie4YoYQPEpuT-AcQuWNwsTVh6X1pigSAmj9v8pt_77YzNhcdZf_jvvch6Bud9mVsNfKO-kjcghkKz75qoiJV73'
-                });
-                toast.success('Added Smart OLED Display to bag');
-              }}
-              className="w-full mt-4 md:mt-6 bg-primary text-on-primary py-2 md:py-3 rounded-xl font-label-md opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-            >
-              Add to Bag
-            </button>
-          </div>
+          {/* Right Arrow — desktop only */}
+          <button
+            onClick={() => scroll('right')}
+            className="hidden md:flex absolute -right-5 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-primary text-on-primary items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all"
+            aria-label="Scroll right"
+          >
+            <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+          </button>
 
-          {/* Card 3: French Door Refrigerator */}
-          <div className="min-w-[85vw] sm:min-w-[320px] md:min-w-0 snap-center bg-surface-container-lowest p-5 md:p-6 rounded-[24px] bento-card-shadow group transition-all hover:scale-[1.01]">
-            <div className="aspect-square bg-surface-container rounded-xl overflow-hidden mb-4 md:mb-6 flex items-center justify-center p-4 md:p-8">
-              <img
-                className="max-h-full object-contain group-hover:scale-110 transition-transform duration-500"
-                alt="Refrigerator"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOrws-_9myUNhJ3M64j_pA6uyi0zuTvhFj6RIaEYCJNPaNtBlKNG1D3gSTHpeX0QAOm3rdALFGvd74V5O_aAZbQW50ZDH1QiuR470ROB4n2srmCNAEuqTnoYFJEx099h3KoyKJuYPYv8XwxA3oRN5IwgcWQJ9As8MjnRVdBHkqLuxB4ouY1-iAzSNUekyfV6z30KpFfprwcCcWM4MJGPmDD0tEmgbSzwwuqcJMchXd5ayC5e_mLwvf5Jip_GCaYsPicqQQ89T9o-bD"
-              />
-            </div>
-            <div className="flex gap-2 mb-4 flex-wrap">
-              <span className="px-3 py-1 border border-primary/10 rounded-full font-label-sm text-label-sm">500L</span>
-              <span className="px-3 py-1 border border-primary/10 rounded-full font-label-sm text-label-sm">Energy Star</span>
-              <span className="px-3 py-1 border border-primary/10 rounded-full font-label-sm text-label-sm">Smart Cool</span>
-            </div>
-            <h4 className="font-headline-md text-lg md:text-headline-md text-primary mb-1 md:mb-2">French Door Cooling</h4>
-            <p className="text-primary font-bold text-xl md:text-headline-md">Rs. 520,000</p>
-            <button
-              onClick={() => {
-                addToCart({
-                  id: 'product-3',
-                  title: 'French Door Cooling',
-                  price: 520000,
-                  category: 'Kitchen',
-                  stock: 3,
-                  image_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBOrws-_9myUNhJ3M64j_pA6uyi0zuTvhFj6RIaEYCJNPaNtBlKNG1D3gSTHpeX0QAOm3rdALFGvd74V5O_aAZbQW50ZDH1QiuR470ROB4n2srmCNAEuqTnoYFJEx099h3KoyKJuYPYv8XwxA3oRN5IwgcWQJ9As8MjnRVdBHkqLuxB4ouY1-iAzSNUekyfV6z30KpFfprwcCcWM4MJGPmDD0tEmgbSzwwuqcJMchXd5ayC5e_mLwvf5Jip_GCaYsPicqQQ89T9o-bD'
-                });
-                toast.success('Added French Door Cooling to bag');
-              }}
-              className="w-full mt-4 md:mt-6 bg-primary text-on-primary py-2 md:py-3 rounded-xl font-label-md opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-            >
-              Add to Bag
-            </button>
+          {/* Right fade gradient — mobile only */}
+          <div
+            className="md:hidden pointer-events-none absolute right-0 top-0 h-full w-12 z-10"
+            style={{ background: 'linear-gradient(to right, transparent, #f9f9fb)' }}
+          />
+
+          {/* Scrollable Track */}
+          <div
+            ref={scrollRef}
+            className="flex gap-4 overflow-x-auto pb-4 pt-2"
+            style={{ scrollSnapType: 'x mandatory', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
+          >
+            {loading ? (
+              <>
+                {[1, 2, 3, 4, 5, 6].map((n) => (
+                  <div
+                    key={n}
+                    className="flex-shrink-0 w-48 sm:w-56 md:w-64 bg-surface-container-lowest p-3 rounded-[24px] bento-card-shadow animate-pulse"
+                    style={{ scrollSnapAlign: 'start' }}
+                  >
+                    <div className="h-36 bg-surface-container rounded-xl mb-3"></div>
+                    <div className="h-4 w-12 bg-surface-container rounded-full mb-2"></div>
+                    <div className="h-4 bg-surface-container rounded-md w-3/4 mb-1"></div>
+                    <div className="h-5 bg-surface-container rounded-md w-1/2 mb-3"></div>
+                    <div className="w-full h-8 bg-surface-container rounded-xl"></div>
+                  </div>
+                ))}
+              </>
+            ) : products.length === 0 ? (
+              <div className="flex items-center justify-center py-12 w-full">
+                <p className="text-neutral-500 font-label-md">More signature products coming soon.</p>
+              </div>
+            ) : (
+              products.map((product) => (
+                <div
+                  key={product.id}
+                  className="flex-shrink-0 w-48 sm:w-56 md:w-64 bg-surface-container-lowest p-3 rounded-[24px] bento-card-shadow group transition-all hover:scale-[1.01] flex flex-col"
+                  style={{ scrollSnapAlign: 'start' }}
+                >
+                  <Link to={product.slug ? `/product/${product.slug}` : '#'} className="block flex-grow">
+                    <div className="h-36 bg-surface-container rounded-xl overflow-hidden mb-3 flex items-center justify-center p-3">
+                      <img
+                        className="max-h-full object-contain group-hover:scale-110 transition-transform duration-500"
+                        alt={product.name}
+                        src={product.thumbnail_url || 'https://placehold.co/400x400?text=No+Image'}
+                      />
+                    </div>
+                    <div className="flex gap-1.5 mb-2 flex-wrap">
+                      {product.category?.name && (
+                        <span className="px-2 py-0.5 border border-primary/10 rounded-full font-label-sm text-xs text-neutral-500">{product.category.name}</span>
+                      )}
+                      {product.model_number && (
+                        <span className="px-2 py-0.5 border border-primary/10 rounded-full font-label-sm text-xs text-neutral-500 truncate max-w-[100px] inline-block align-bottom">{product.model_number}</span>
+                      )}
+                    </div>
+                    <h4 className="font-semibold text-sm text-primary mb-1 line-clamp-2 leading-snug">{product.name}</h4>
+                    <div className="flex items-baseline gap-1.5 flex-wrap">
+                      <p className="text-primary font-bold text-base">
+                        Rs. {product.price?.toLocaleString()}
+                      </p>
+                      {product.original_price && (
+                        <span className="text-xs text-neutral-400 line-through">Rs. {product.original_price.toLocaleString()}</span>
+                      )}
+                    </div>
+                  </Link>
+                  <div className="mt-3">
+                    <button
+                      onClick={() => {
+                        addToCart({
+                          id: product.id,
+                          name: product.name,
+                          price: product.price,
+                          thumbnail_url: product.thumbnail_url,
+                          model_number: product.model_number
+                        });
+                        toast.success(`Added ${product.name} to bag`);
+                      }}
+                      className="w-full bg-primary text-on-primary py-1.5 rounded-xl font-label-md opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-xs"
+                    >
+                      Add to Bag
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

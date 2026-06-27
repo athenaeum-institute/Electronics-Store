@@ -4,11 +4,10 @@ import type { User } from '@supabase/supabase-js';
 
 export interface Product {
   id: string;
-  title: string;
+  name: string;
   price: number;
-  category: string;
-  stock: number;
-  image_url: string;
+  thumbnail_url: string | null;
+  model_number?: string | null;
 }
 
 export interface CartItem extends Product {

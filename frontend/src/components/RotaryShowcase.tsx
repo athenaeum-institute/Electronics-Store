@@ -1,13 +1,17 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { getCategories } from '../lib/supabase';
 
-const CATEGORIES = [
-  { name: 'Inverter ACs', icon: 'ac_unit', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBt7VV7blG8cFGDDNlxgQaS3fRiJ_cyCOxB7t58YRRU3tLtfgvNag8_bBfiLoU8f01ybtiNiP7dw3dwD5kbwlTX7qVtLsZhToT8ecHGhEFx71QSsRWJ1YfRJsTcc4grrH2ww11e8F_VPlfnZuMPaC1pOueC3jvewRDHxcdxZsX9MtJwUCPxAb7pW72zB7CnY0V8h9FtsIweZclKI1qYnC87LosQUD4P8UCyQevwq9cu7gw0MHWhJH2A9bcjRKMGHjLLZsK8NZ9H6xof' },
-  { name: 'Smart Refrigerators', icon: 'kitchen', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBRORX1nuj6i2rixPISpU8rQy67b0NiuNSlpOTUIrZUw2TMRSZtIfnbtfWRDbOj83G4-MmZ-6do_vxYq8xdBWT3Q64mbo0qP2us49-0g5RJeLYgImTNoZgMBQ40e32liSi2izjGPGNhzPu5qAQVtZRcEJVNUwadAAXLuSIQ0LV3FCs7nrtl1ZN-J2T_bPFKUaeThDWxEE0QYO2FnPf2W9my0r_A5jLrIoxJRyOnJHHR84IUdRu6OEIN7lzpjkC_OL1kE0lLW76HAP3T' },
-  { name: 'OLED Entertainment', icon: 'tv', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCu6-MTESjnBFTQVznftG6eSLEw55QZMiFNMWayiAU_RVXjrKhNAOg7jd8m4vQLCCEQfBP6tQCRUPDwsFKZzDwCGS--ClCKLkdmbuygceg3MckxFE1LXasKsRtRaPbGG_upFn59VolMVmAItiwdLk5-RJgxHdO7-kwzqIPZqsR71xrr31UeUoD3o2yONovWKsiQUOIxu2ganXIDJmr6zw6iYzvG_OQsi3vYC3f86Hcv-fPUErL0RCAD1EOhYHtlyz07J2eYFWO0UfZj' },
-  { name: 'Precision Washing', icon: 'local_laundry_service', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDRqHiq8a98Xd6mLLKvAuZ4yHOF96OWhrk9ccsEhQy-CAjjrABbeMLTNLxTtG_75j2RTg-pq_sc6yoSnWyl6-sDu9-x2d6j-kqg8qk7ZGjlG5vIccdU5SJaM3rsnSugXWqaUTOfuVR-kLVKqItFcbmcGjxZtRipHTsRMUeYiO6bX-m4GFwcMID8HZofNwDuKo_QJubUDpZ1feDHbpx17fppwNY64AEyX10r27_sbt4ZO6DaDRQ9psYnukgznkILN_GauAbdo6jCrsVO' }
+const DEFAULT_CATEGORIES = [
+  { name: 'Inverter ACs', slug: 'air-conditioners', icon: 'ac_unit', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBt7VV7blG8cFGDDNlxgQaS3fRiJ_cyCOxB7t58YRRU3tLtfgvNag8_bBfiLoU8f01ybtiNiP7dw3dwD5kbwlTX7qVtLsZhToT8ecHGhEFx71QSsRWJ1YfRJsTcc4grrH2ww11e8F_VPlfnZuMPaC1pOueC3jvewRDHxcdxZsX9MtJwUCPxAb7pW72zB7CnY0V8h9FtsIweZclKI1qYnC87LosQUD4P8UCyQevwq9cu7gw0MHWhJH2A9bcjRKMGHjLLZsK8NZ9H6xof' },
+  { name: 'Smart Refrigerators', slug: 'refrigerators', icon: 'kitchen', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBRORX1nuj6i2rixPISpU8rQy67b0NiuNSlpOTUIrZUw2TMRSZtIfnbtfWRDbOj83G4-MmZ-6do_vxYq8xdBWT3Q64mbo0qP2us49-0g5RJeLYgImTNoZgMBQ40e32liSi2izjGPGNhzPu5qAQVtZRcEJVNUwadAAXLuSIQ0LV3FCs7nrtl1ZN-J2T_bPFKUaeThDWxEE0QYO2FnPf2W9my0r_A5jLrIoxJRyOnJHHR84IUdRu6OEIN7lzpjkC_OL1kE0lLW76HAP3T' },
+  { name: 'OLED Entertainment', slug: 'led-tvs', icon: 'tv', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCu6-MTESjnBFTQVznftG6eSLEw55QZMiFNMWayiAU_RVXjrKhNAOg7jd8m4vQLCCEQfBP6tQCRUPDwsFKZzDwCGS--ClCKLkdmbuygceg3MckxFE1LXasKsRtRaPbGG_upFn59VolMVmAItiwdLk5-RJgxHdO7-kwzqIPZqsR71xrr31UeUoD3o2yONovWKsiQUOIxu2ganXIDJmr6zw6iYzvG_OQsi3vYC3f86Hcv-fPUErL0RCAD1EOhYHtlyz07J2eYFWO0UfZj' },
+  { name: 'Precision Washing', slug: 'washing-machines', icon: 'local_laundry_service', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDRqHiq8a98Xd6mLLKvAuZ4yHOF96OWhrk9ccsEhQy-CAjjrABbeMLTNLxTtG_75j2RTg-pq_sc6yoSnWyl6-sDu9-x2d6j-kqg8qk7ZGjlG5vIccdU5SJaM3rsnSugXWqaUTOfuVR-kLVKqItFcbmcGjxZtRipHTsRMUeYiO6bX-m4GFwcMID8HZofNwDuKo_QJubUDpZ1feDHbpx17fppwNY64AEyX10r27_sbt4ZO6DaDRQ9psYnukgznkILN_GauAbdo6jCrsVO' }
 ];
 
 export default function RotaryShowcase() {
+  const navigate = useNavigate();
+  const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
   const [currentRotation, setCurrentRotation] = useState(0);
   const [activeIndex, setActiveIndex] = useState(0);
   const [fadeState, setFadeState] = useState(true);
@@ -16,6 +20,32 @@ export default function RotaryShowcase() {
   const isDragging = useRef(false);
   const startAngle = useRef(0);
   const startRotation = useRef(0);
+
+  useEffect(() => {
+    async function fetchCats() {
+      try {
+        const data = await getCategories();
+        if (data && data.length > 0) {
+          const newCats = DEFAULT_CATEGORIES.map((defCat, i) => {
+            const dbCat = data[i];
+            if (dbCat) {
+              return {
+                name: dbCat.name,
+                slug: dbCat.slug || defCat.slug,
+                icon: defCat.icon,
+                image: dbCat.image_url || defCat.image,
+              };
+            }
+            return defCat;
+          });
+          setCategories(newCats);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    fetchCats();
+  }, []);
 
   // Helper to handle showcasing update logic with transition
   const updateShowcase = (index: number) => {
@@ -98,15 +128,18 @@ export default function RotaryShowcase() {
             <img 
               className={`w-full h-full object-cover transition-all duration-500 ease-in-out ${fadeState ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
               alt="Showcase Category"
-              src={CATEGORIES[activeIndex].image}
+              src={categories[activeIndex].image}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
             
             <div className={`absolute bottom-6 left-6 right-6 md:bottom-12 md:left-12 md:right-12 text-left z-10 transition-all duration-500 ease-in-out ${fadeState ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
               <h3 className="font-display-lg font-bold tracking-tight text-2xl md:text-[48px] text-white mb-1 md:mb-4">
-                {CATEGORIES[activeIndex].name}
+                {categories[activeIndex].name}
               </h3>
-              <a className="inline-flex items-center gap-2 text-white font-label-md text-sm md:text-base hover:gap-4 transition-all" href="#">
+              <a
+                className="inline-flex items-center gap-2 text-white font-label-md text-sm md:text-base hover:gap-4 transition-all cursor-pointer"
+                onClick={() => navigate(`/category/${categories[activeIndex].slug || encodeURIComponent(categories[activeIndex].name)}`)}
+              >
                 Explore Category <span className="material-symbols-outlined text-sm md:text-base">arrow_forward</span>
               </a>
             </div>
@@ -134,7 +167,7 @@ export default function RotaryShowcase() {
               onPointerCancel={handlePointerUp}
             >
               {/* Category Icons */}
-              {CATEGORIES.map((cat, i) => {
+              {categories.map((cat, i) => {
                 const isSelected = i === activeIndex;
                 const positions = [
                   "top-4 left-1/2 -translate-x-1/2", // 0deg (AC)
