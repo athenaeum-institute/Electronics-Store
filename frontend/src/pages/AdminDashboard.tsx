@@ -29,15 +29,16 @@ export default function AdminDashboard() {
 
   async function fetchSettings() {
     const { data } = await supabase.from('site_settings').select('*');
-    if (data) {
-      const hero = data.find((s: any) => s.key === 'hero_image_url');
+    const settings = data as any[] | null;
+    if (settings) {
+      const hero = settings.find((s: any) => s.key === 'hero_image_url');
       if (hero) setHeroImagePreview(hero.value);
       
       setCategoryImages({
-        inverter_acs: data.find((s: any) => s.key === 'category_inverter_acs_image')?.value || '',
-        led_tvs: data.find((s: any) => s.key === 'category_led_tvs_image')?.value || '',
-        refrigerators: data.find((s: any) => s.key === 'category_refrigerators_image')?.value || '',
-        washing_machines: data.find((s: any) => s.key === 'category_washing_machines_image')?.value || '',
+        inverter_acs: settings.find((s: any) => s.key === 'category_inverter_acs_image')?.value || '',
+        led_tvs: settings.find((s: any) => s.key === 'category_led_tvs_image')?.value || '',
+        refrigerators: settings.find((s: any) => s.key === 'category_refrigerators_image')?.value || '',
+        washing_machines: settings.find((s: any) => s.key === 'category_washing_machines_image')?.value || '',
       });
     }
   };
@@ -76,7 +77,7 @@ export default function AdminDashboard() {
 
       const { error: updateError } = await supabase
         .from('site_settings')
-        .upsert({ key: 'hero_image_url', value: publicUrl });
+        .upsert({ key: 'hero_image_url', value: publicUrl } as any);
 
       if (updateError) throw updateError;
 
@@ -93,7 +94,7 @@ export default function AdminDashboard() {
   async function saveCategoryImages() {
     setSavingCategories(true);
     try {
-      const updates = [
+      const updates: any[] = [
         { key: 'category_inverter_acs_image', value: categoryImages.inverter_acs },
         { key: 'category_led_tvs_image', value: categoryImages.led_tvs },
         { key: 'category_refrigerators_image', value: categoryImages.refrigerators },

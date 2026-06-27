@@ -135,7 +135,7 @@ export default function ProductDetails() {
 
     async function fetchData() {
       try {
-        const data = await getProductBySlug(slug);
+        const data = await getProductBySlug(slug as string);
         if (!data) { setNotFound(true); return; }
         const p = data as unknown as Product;
         setProduct(p);

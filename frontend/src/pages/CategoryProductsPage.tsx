@@ -115,7 +115,7 @@ export default function CategoryProductsPage() {
       try {
         // Fetch products and category name in parallel
         const [prods, cats] = await Promise.all([
-          getProductsByCategory(slug),
+          getProductsByCategory(slug as string),
           getCategories(),
         ]);
         setProducts(prods as any[]);

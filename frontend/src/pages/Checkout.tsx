@@ -45,7 +45,7 @@ export default function Checkout() {
           total_amount: getCartTotal(),
           payment_method: formData.paymentMethod,
           status: 'pending'
-        })
+        } as any)
         .select()
         .single();
 
@@ -63,10 +63,9 @@ export default function Checkout() {
       // but in real app we'd map valid product IDs. For now, we insert if possible.
       // If we used a strict FK, we'd have to ensure products exist.
       // Assuming we drop the strict FK constraint for dummy products or they exist.
-      // Let's just try inserting.
       const { error: itemsError } = await supabase
         .from('order_items')
-        .insert(orderItems);
+        .insert(orderItems as any);
 
       if (itemsError) {
         console.warn('Could not insert items due to FK constraint (dummy products), but order was placed.');
@@ -99,11 +98,11 @@ export default function Checkout() {
             <div className="flex flex-col gap-6">
               {cart.map(item => (
                 <div key={item.id} className="flex gap-4 p-4 bg-surface-container-lowest rounded-2xl border border-neutral-100">
-                  <img src={item.image_url} alt={item.title} className="w-24 h-24 object-contain bg-neutral-50 rounded-xl p-2" />
+                  <img src={item.thumbnail_url || 'https://placehold.co/100'} alt={item.name} className="w-24 h-24 object-contain bg-neutral-50 rounded-xl p-2" />
                   <div className="flex-1 flex flex-col justify-between">
                     <div>
-                      <h3 className="font-semibold text-neutral-900">{item.title}</h3>
-                      <p className="text-sm text-neutral-500">{item.category}</p>
+                      <h3 className="font-semibold text-neutral-900">{item.name}</h3>
+                      {item.model_number && <p className="text-sm text-neutral-500">{item.model_number}</p>}
                     </div>
                     <div className="flex items-center justify-between mt-2">
                       <p className="font-bold text-neutral-900">Rs. {item.price.toLocaleString()}</p>

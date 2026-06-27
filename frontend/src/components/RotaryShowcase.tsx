@@ -26,8 +26,9 @@ export default function RotaryShowcase() {
       try {
         const data = await getCategories();
         if (data && data.length > 0) {
+          const categoriesData = data as any[];
           const newCats = DEFAULT_CATEGORIES.map((defCat, i) => {
-            const dbCat = data[i];
+            const dbCat = categoriesData[i];
             if (dbCat) {
               return {
                 name: dbCat.name,
