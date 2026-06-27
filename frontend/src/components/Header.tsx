@@ -28,6 +28,7 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+
   const checkAdmin = async (currentUser: any) => {
     if (!currentUser?.id) {
       setIsAdmin(false);
@@ -63,24 +64,7 @@ export default function Header() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const checkAdmin = async (currentUser: any) => {
-    if (!currentUser?.id) {
-      setIsAdmin(false);
-      return;
-    }
 
-    if (currentUser.email === 'allirajput23@gmail.com') {
-      setIsAdmin(true);
-      return;
-    }
-
-    const { data } = await supabase
-      .from('profiles')
-      .select('is_admin')
-      .eq('id', currentUser.id)
-      .single();
-    setIsAdmin(data ? (data as any).is_admin : false);
-  };
 
   // Close dropdown on outside click
   useEffect(() => {
