@@ -20,8 +20,10 @@ export default function SearchPanel({ isOpen, onClose }: SearchPanelProps) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
-      setQuery('');
-      setResults([]);
+      setTimeout(() => {
+        setQuery('');
+        setResults([]);
+      }, 0);
     }
     
     const handleEsc = (e: KeyboardEvent) => {
@@ -33,8 +35,10 @@ export default function SearchPanel({ isOpen, onClose }: SearchPanelProps) {
 
   useEffect(() => {
     if (query.trim().length < 2) {
-      setResults([]);
-      setLoading(false);
+      setTimeout(() => {
+        setResults([]);
+        setLoading(false);
+      }, 0);
       return;
     }
 

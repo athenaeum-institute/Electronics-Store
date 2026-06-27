@@ -111,9 +111,11 @@ export default function AdminDashboard() {
   }
 
   useEffect(() => {
-    if (activeTab === 'products') fetchProducts();
-    if (activeTab === 'orders') fetchOrders();
-    if (activeTab === 'hero' || activeTab === 'categories') fetchSettings();
+    setTimeout(() => {
+      if (activeTab === 'products') fetchProducts();
+      if (activeTab === 'orders') fetchOrders();
+      if (activeTab === 'hero' || activeTab === 'categories') fetchSettings();
+    }, 0);
   }, [activeTab]);
 
   return (

@@ -106,8 +106,10 @@ export default function CategoryProductsPage() {
 
   useEffect(() => {
     if (!slug) return;
-    setLoading(true);
-    setProducts([]);
+    setTimeout(() => {
+      setLoading(true);
+      setProducts([]);
+    }, 0);
 
     async function fetchData() {
       try {

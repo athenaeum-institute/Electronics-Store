@@ -126,10 +126,12 @@ export default function ProductDetails() {
 
   useEffect(() => {
     if (!slug) return;
-    setLoading(true);
-    setNotFound(false);
-    setQuantity(1);
-    setActiveTab('specifications');
+    setTimeout(() => {
+      setLoading(true);
+      setNotFound(false);
+      setQuantity(1);
+      setActiveTab('specifications');
+    }, 0);
 
     async function fetchData() {
       try {

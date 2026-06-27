@@ -158,7 +158,6 @@ export default function RotaryShowcase() {
               className="absolute inset-0 rounded-full cursor-grab active:cursor-grabbing select-none"
               style={{
                 transform: `rotate(${currentRotation}deg)`,
-                transition: isDragging.current ? 'none' : 'transform 0.8s cubic-bezier(0.23, 1, 0.32, 1)',
                 touchAction: 'none' // prevent scrolling on mobile while dragging
               }}
               onPointerDown={handlePointerDown}
@@ -182,7 +181,6 @@ export default function RotaryShowcase() {
                     className={`absolute ${positions[i]}`}
                     style={{
                       transform: `rotate(${-currentRotation}deg)`,
-                      transition: isDragging.current ? 'none' : 'transform 0.8s cubic-bezier(0.23, 1, 0.32, 1)'
                     }}
                   >
                     <button 

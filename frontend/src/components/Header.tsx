@@ -28,6 +28,26 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const checkAdmin = async (currentUser: any) => {
+    if (!currentUser?.id) {
+      setIsAdmin(false);
+      return;
+    }
+
+    if (currentUser.email === 'allirajput23@gmail.com') {
+      setIsAdmin(true);
+      return;
+    }
+
+    const { data } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', currentUser.id)
+      .maybeSingle();
+      
+    setIsAdmin(data ? (data as any).is_admin : false);
+  };
+
   // Listen to auth state changes
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
