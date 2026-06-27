@@ -101,7 +101,7 @@ export default function AdminDashboard() {
         { key: 'category_washing_machines_image', value: categoryImages.washing_machines },
       ];
       
-      const { error } = await supabase.from('site_settings').upsert(updates);
+      const { error } = await supabase.from('site_settings').upsert(updates as any);
       if (error) throw error;
       toast.success('Category images updated successfully!');
     } catch (error: any) {

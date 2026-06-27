@@ -50,10 +50,11 @@ export default function Checkout() {
         .single();
 
       if (orderError) throw orderError;
+      if (!order) throw new Error("Order creation failed");
 
       // 2. Create Order Items
       const orderItems = cart.map(item => ({
-        order_id: order.id,
+        order_id: (order as any).id,
         product_id: item.id.startsWith('product-') ? null : item.id, // Handle dummy IDs safely if DB restricts FK
         quantity: item.quantity,
         price: item.price
