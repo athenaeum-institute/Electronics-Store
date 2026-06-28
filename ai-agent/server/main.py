@@ -253,10 +253,8 @@ async def voice_websocket(websocket: WebSocket):
                 )
             if result.is_final and sentence.strip():
                 transcript_buffer = sentence
-                # Use create_task so process_transcript runs in background
-                # and does NOT block the audio receive loop
                 asyncio.run_coroutine_threadsafe(
-                    asyncio.ensure_future(process_transcript(sentence), loop=loop),
+                    process_transcript(sentence),
                     loop
                 )
         except Exception as e:
@@ -276,7 +274,10 @@ async def voice_websocket(websocket: WebSocket):
             conversation_history.append({"role": "user", "content": text})
             await websocket.send_json({"type": "transcript", "text": text})
 
-            chat_response = groq_client.chat.completions.create(
+            # Run blocking Groq call in a thread so it does NOT freeze the asyncio event loop
+            # Without this, audio stops flowing to Deepgram while AI is thinking!
+            chat_response = await asyncio.to_thread(
+                groq_client.chat.completions.create,
                 model="llama-3.1-8b-instant",
                 messages=conversation_history,
                 max_tokens=150,
@@ -298,7 +299,11 @@ async def voice_websocket(websocket: WebSocket):
             await websocket.send_bytes(audio_bytes)
 
         except Exception as e:
-            await websocket.send_json({"type": "ai_response", "text": f"Error: {str(e)}"})
+            print(f"process_transcript error: {e}")
+            try:
+                await websocket.send_json({"type": "ai_response", "text": f"Error: {str(e)}"})
+            except:
+                pass
 
     dg_connection.on(LiveTranscriptionEvents.Transcript, on_transcript)
 
@@ -311,7 +316,9 @@ async def voice_websocket(websocket: WebSocket):
     )
 
     try:
-        greeting_response = groq_client.chat.completions.create(
+        # Also run greeting Groq call in thread to avoid blocking
+        greeting_response = await asyncio.to_thread(
+            groq_client.chat.completions.create,
             model="llama-3.1-8b-instant",
             messages=conversation_history + [{"role": "user", "content": "greet the customer"}],
             max_tokens=60,
