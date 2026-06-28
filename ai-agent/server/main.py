@@ -4,11 +4,12 @@ from deepgram import DeepgramClient, LiveTranscriptionEvents, LiveOptions
 from groq import Groq
 import edge_tts
 import tempfile
-import os, json, asyncio
-import certifi
+import os, json, asyncio, sys
 
-# Fix for macOS SSL Certificate errors
-os.environ["SSL_CERT_FILE"] = certifi.where()
+# Fix for macOS SSL Certificate errors (only apply on macOS, NOT on Railway/Linux)
+if sys.platform == "darwin":
+    import certifi
+    os.environ["SSL_CERT_FILE"] = certifi.where()
 
 from dotenv import load_dotenv
 
