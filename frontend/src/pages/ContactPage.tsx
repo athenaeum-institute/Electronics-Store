@@ -29,7 +29,8 @@ export default function ContactPage() {
 
       ws.onopen = () => {
         setCallStatus('active');
-        const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+        const options = MediaRecorder.isTypeSupported('audio/webm') ? { mimeType: 'audio/webm' } : {};
+        const mediaRecorder = new MediaRecorder(stream, options);
         mediaRecorderRef.current = mediaRecorder;
         mediaRecorder.ondataavailable = (e) => {
           if (ws.readyState === WebSocket.OPEN && e.data.size > 0) {
@@ -40,8 +41,9 @@ export default function ContactPage() {
 
         pingIntervalRef.current = setInterval(() => {
           if (ws.readyState === WebSocket.OPEN) {
-            ws.send(new Blob(['ping'], {type: 'text/plain'}));
+            ws.send('ping');
           }
+
         }, 5000);
       };
 
