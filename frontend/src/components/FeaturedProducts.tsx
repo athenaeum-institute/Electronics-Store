@@ -80,14 +80,20 @@ export default function FeaturedProducts() {
                 {[1, 2, 3, 4, 5, 6].map((n) => (
                   <div
                     key={n}
-                    className="flex-shrink-0 w-48 sm:w-56 md:w-64 bg-surface-container-lowest p-3 rounded-[24px] bento-card-shadow animate-pulse"
+                    className="flex-shrink-0 w-48 sm:w-56 md:w-64 bg-white rounded-2xl shadow-sm overflow-hidden flex flex-col animate-pulse"
                     style={{ scrollSnapAlign: 'start' }}
                   >
-                    <div className="h-36 bg-surface-container rounded-xl mb-3"></div>
-                    <div className="h-4 w-12 bg-surface-container rounded-full mb-2"></div>
-                    <div className="h-4 bg-surface-container rounded-md w-3/4 mb-1"></div>
-                    <div className="h-5 bg-surface-container rounded-md w-1/2 mb-3"></div>
-                    <div className="w-full h-8 bg-surface-container rounded-xl"></div>
+                    <div className="h-52 md:h-56 bg-[#f8f8f8] rounded-t-2xl" />
+                    <div className="p-3 flex flex-col flex-grow">
+                      <div className="h-3 w-16 bg-gray-200 rounded mb-2" />
+                      <div className="h-4 w-3/4 bg-gray-200 rounded mb-1" />
+                      <div className="h-4 w-1/2 bg-gray-200 rounded mb-2" />
+                      <div className="h-3 w-20 bg-gray-200 rounded mb-3" />
+                      <div className="h-5 w-24 bg-gray-200 rounded mt-2" />
+                    </div>
+                    <div className="px-3 pb-3 mt-auto">
+                      <div className="h-9 w-full bg-gray-200 rounded-xl" />
+                    </div>
                   </div>
                 ))}
               </>
@@ -96,57 +102,85 @@ export default function FeaturedProducts() {
                 <p className="text-neutral-500 font-label-md">More signature products coming soon.</p>
               </div>
             ) : (
-              products.map((product) => (
-                <div
-                  key={product.id}
-                  className="flex-shrink-0 w-48 sm:w-56 md:w-64 bg-surface-container-lowest p-3 rounded-[24px] bento-card-shadow group transition-all hover:scale-[1.01] flex flex-col"
-                  style={{ scrollSnapAlign: 'start' }}
-                >
-                  <Link to={product.slug ? `/product/${product.slug}` : '#'} className="block flex-grow">
-                    <div className="h-36 bg-surface-container rounded-xl overflow-hidden mb-3 flex items-center justify-center p-3">
-                      <img
-                        className="max-h-full object-contain group-hover:scale-110 transition-transform duration-500"
-                        alt={product.name}
-                        src={product.thumbnail_url || 'https://placehold.co/400x400?text=No+Image'}
-                      />
+              products.map((product) => {
+                const discountPercent = product.original_price
+                  ? Math.round(((product.original_price - product.price) / product.original_price) * 100)
+                  : 0;
+
+                return (
+                  <div
+                    key={product.id}
+                    className="flex-shrink-0 w-48 sm:w-56 md:w-64 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden flex flex-col"
+                    style={{ scrollSnapAlign: 'start' }}
+                  >
+                    <Link to={product.slug ? `/product/${product.slug}` : '#'} className="block flex-grow">
+                      <div className="h-52 md:h-56 bg-[#f8f8f8] rounded-t-2xl flex items-center justify-center p-4 relative">
+                        {product.thumbnail_url ? (
+                          <img
+                            className="w-full h-full object-contain"
+                            alt={product.name}
+                            src={product.thumbnail_url}
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.parentElement?.querySelector('.fallback')?.classList.remove('hidden');
+                            }}
+                          />
+                        ) : null}
+                        <div className={`fallback flex items-center justify-center w-full h-full text-6xl text-gray-300 font-bold ${product.thumbnail_url ? 'hidden' : ''}`}>
+                          {product.name ? product.name.charAt(0).toUpperCase() : 'P'}
+                        </div>
+                      </div>
+                      <div className="p-3 flex flex-col flex-grow">
+                        {product.category?.name && (
+                          <span className="text-[10px] uppercase tracking-wider text-gray-400 font-medium">
+                            {product.category.name}
+                          </span>
+                        )}
+                        <h4 className="text-sm font-semibold text-gray-900 leading-snug mt-1 line-clamp-2">
+                          {product.name}
+                        </h4>
+                        {product.model_number && (
+                          <span className="text-[10px] text-gray-400 mt-0.5 truncate">
+                            {product.model_number}
+                          </span>
+                        )}
+                        <div className="flex items-baseline mt-2 flex-wrap">
+                          <span className="text-base font-bold text-gray-900">
+                            Rs. {product.price?.toLocaleString()}
+                          </span>
+                          {product.original_price && (
+                            <>
+                              <span className="text-xs text-gray-400 line-through ml-2">
+                                Rs. {product.original_price.toLocaleString()}
+                              </span>
+                              <span className="text-[10px] bg-red-50 text-red-500 px-1.5 py-0.5 rounded-full ml-1 font-medium">
+                                {discountPercent}% OFF
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                    <div className="px-3 pb-3 mt-auto">
+                      <button
+                        onClick={() => {
+                          addToCart({
+                            id: product.id,
+                            name: product.name,
+                            price: product.price,
+                            thumbnail_url: product.thumbnail_url,
+                            model_number: product.model_number
+                          });
+                          toast.success(`Added ${product.name} to bag`);
+                        }}
+                        className="w-full bg-black text-white text-xs font-semibold py-2.5 rounded-xl hover:bg-gray-800 transition-colors"
+                      >
+                        Add to Bag
+                      </button>
                     </div>
-                    <div className="flex gap-1.5 mb-2 flex-wrap">
-                      {product.category?.name && (
-                        <span className="px-2 py-0.5 border border-primary/10 rounded-full font-label-sm text-xs text-neutral-500">{product.category.name}</span>
-                      )}
-                      {product.model_number && (
-                        <span className="px-2 py-0.5 border border-primary/10 rounded-full font-label-sm text-xs text-neutral-500 truncate max-w-[100px] inline-block align-bottom">{product.model_number}</span>
-                      )}
-                    </div>
-                    <h4 className="font-semibold text-sm text-primary mb-1 line-clamp-2 leading-snug">{product.name}</h4>
-                    <div className="flex items-baseline gap-1.5 flex-wrap">
-                      <p className="text-primary font-bold text-base">
-                        Rs. {product.price?.toLocaleString()}
-                      </p>
-                      {product.original_price && (
-                        <span className="text-xs text-neutral-400 line-through">Rs. {product.original_price.toLocaleString()}</span>
-                      )}
-                    </div>
-                  </Link>
-                  <div className="mt-3">
-                    <button
-                      onClick={() => {
-                        addToCart({
-                          id: product.id,
-                          name: product.name,
-                          price: product.price,
-                          thumbnail_url: product.thumbnail_url,
-                          model_number: product.model_number
-                        });
-                        toast.success(`Added ${product.name} to bag`);
-                      }}
-                      className="w-full bg-primary text-on-primary py-1.5 rounded-xl font-label-md opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-xs"
-                    >
-                      Add to Bag
-                    </button>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
