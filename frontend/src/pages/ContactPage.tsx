@@ -22,7 +22,8 @@ export default function ContactPage() {
     try {
       setCallStatus('connecting');
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const ws = new WebSocket('ws://localhost:8000/ws/voice');
+      const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8000';
+      const ws = new WebSocket(`${WS_URL}/ws/voice`);
       wsRef.current = ws;
       audioContextRef.current = new AudioContext();
 
