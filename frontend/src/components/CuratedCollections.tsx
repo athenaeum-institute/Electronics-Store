@@ -23,8 +23,8 @@ export default function CuratedCollections() {
       try {
         const data = await getCategories();
         setCategories(data);
-      } catch (error) {
-        console.error(error);
+      } catch {
+        // fetch failed, static fallback shown
       } finally {
         setLoading(false);
       }

@@ -18,8 +18,8 @@ export default function Hero() {
         if (img) setHeroImage(img);
         if (title) setHeroTitle(title);
         if (subtitle) setHeroSubtitle(subtitle);
-      } catch (error) {
-        console.error(error);
+      } catch {
+        // fetch failed, defaults stay
       }
     }
     fetchHeroData();

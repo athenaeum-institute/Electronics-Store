@@ -146,8 +146,8 @@ export default function CategoryProductsPage() {
           c => c.slug === slug || encodeURIComponent(c.name) === slug
         );
         if (found) setCategoryName(found.name);
-      } catch (err) {
-        console.error(err);
+      } catch {
+        // fetch failed silently
       } finally {
         setLoading(false);
       }

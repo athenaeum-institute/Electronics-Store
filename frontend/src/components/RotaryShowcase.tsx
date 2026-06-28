@@ -41,8 +41,8 @@ export default function RotaryShowcase() {
           });
           setCategories(newCats);
         }
-      } catch (error) {
-        console.error(error);
+      } catch {
+        // fetch failed, default categories stay
       }
     }
     fetchCats();

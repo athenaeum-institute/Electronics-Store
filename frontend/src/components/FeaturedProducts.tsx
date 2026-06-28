@@ -15,8 +15,8 @@ export default function FeaturedProducts() {
       try {
         const data = await getFeaturedProducts();
         setProducts(data);
-      } catch (error) {
-        console.error(error);
+      } catch {
+        // fetch failed silently
       } finally {
         setLoading(false);
       }

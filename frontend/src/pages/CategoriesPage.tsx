@@ -59,8 +59,8 @@ export default function CategoriesPage() {
       try {
         const data = await getCategories();
         setCategories(data as Category[]);
-      } catch (err) {
-        console.error(err);
+      } catch {
+        // fetch failed silently
       } finally {
         setLoading(false);
       }

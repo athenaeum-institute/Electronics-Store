@@ -63,51 +63,6 @@ function ProductSkeleton() {
   );
 }
 
-// ── Related Product Card ──────────────────────────────────────────────
-function RelatedProductCard({ product }: { product: any }) {
-  const addToCart = useStore(s => s.addToCart);
-  return (
-    <Link
-      to={`/product/${product.slug}`}
-      className="min-w-[85vw] sm:min-w-[220px] md:min-w-0 snap-center bg-surface-container-lowest p-5 md:p-6 rounded-[24px] bento-card-shadow group transition-all hover:scale-[1.01] block"
-    >
-      <div className="aspect-square bg-surface-container rounded-xl overflow-hidden mb-4 flex items-center justify-center p-4">
-        <img
-          className="max-h-full object-contain group-hover:scale-110 transition-transform duration-500"
-          alt={product.name}
-          src={product.thumbnail_url || 'https://placehold.co/400x400?text=No+Image'}
-        />
-      </div>
-      <div className="flex gap-2 mb-3 flex-wrap">
-        {product.category?.name && (
-          <span className="px-3 py-1 border border-primary/10 rounded-full font-label-sm text-label-sm">
-            {product.category.name}
-          </span>
-        )}
-      </div>
-      <h4 className="font-semibold text-sm text-primary mb-1 line-clamp-2">{product.name}</h4>
-      <p className="text-primary font-bold text-base">
-        Rs. {product.price?.toLocaleString()}
-        {product.original_price && (
-          <span className="text-sm text-neutral-400 line-through ml-2 font-normal">
-            Rs. {product.original_price.toLocaleString()}
-          </span>
-        )}
-      </p>
-      <button
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          addToCart({ id: product.id, name: product.name, price: product.price, thumbnail_url: product.thumbnail_url, model_number: product.model_number });
-          toast.success(`Added ${product.name} to bag`);
-        }}
-        className="w-full mt-4 bg-primary text-on-primary py-2.5 rounded-xl font-label-md opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-sm"
-      >
-        Add to Bag
-      </button>
-    </Link>
-  );
-}
 
 // ── Main Component ────────────────────────────────────────────────────
 export default function ProductDetails() {
@@ -161,17 +116,15 @@ export default function ProductDetails() {
             .select('slug')
             .eq('id', p.category_id)
             .single();
-          if (catData?.slug) {
-            catSlug = catData.slug;
-          }
+          const slug = (catData as { slug: string | null } | null)?.slug;
+          if (slug) catSlug = slug;
         }
 
         if (catSlug) {
           const related = await getProductsByCategory(catSlug);
           setRelatedProducts((related as any[]).filter((r: any) => r.id !== p.id).slice(0, 4));
         }
-      } catch (err) {
-        console.error(err);
+      } catch {
         setNotFound(true);
       } finally {
         setLoading(false);
