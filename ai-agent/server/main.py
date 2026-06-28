@@ -309,8 +309,6 @@ async def voice_websocket(websocket: WebSocket):
         punctuate=True,
     )
 
-    dg_connection.start(options)
-
     try:
         greeting_response = groq_client.chat.completions.create(
             model="llama-3.1-8b-instant",
@@ -331,6 +329,8 @@ async def voice_websocket(websocket: WebSocket):
             audio_bytes = f.read()
         os.unlink(tmp_path)
         await websocket.send_bytes(audio_bytes)
+
+        dg_connection.start(options)
 
         while True:
             message = await websocket.receive()
