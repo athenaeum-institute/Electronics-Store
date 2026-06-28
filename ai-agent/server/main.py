@@ -247,16 +247,16 @@ async def voice_websocket(websocket: WebSocket):
         try:
             sentence = result.channel.alternatives[0].transcript
             if sentence.strip():
-                # Send every transcript (even partial) to the frontend so the user knows it's listening!
                 asyncio.run_coroutine_threadsafe(
                     websocket.send_json({"type": "transcript", "text": sentence}),
                     loop
                 )
-                
             if result.is_final and sentence.strip():
                 transcript_buffer = sentence
+                # Use create_task so process_transcript runs in background
+                # and does NOT block the audio receive loop
                 asyncio.run_coroutine_threadsafe(
-                    process_transcript(sentence),
+                    asyncio.ensure_future(process_transcript(sentence), loop=loop),
                     loop
                 )
         except Exception as e:
