@@ -29,27 +29,33 @@ export default function ContactPage() {
 
       ws.onopen = () => {
         setCallStatus('active');
-        const options = MediaRecorder.isTypeSupported('audio/webm') ? { mimeType: 'audio/webm' } : {};
-        const mediaRecorder = new MediaRecorder(stream, options);
-        mediaRecorderRef.current = mediaRecorder;
-        mediaRecorder.ondataavailable = (e) => {
-          if (ws.readyState === WebSocket.OPEN && e.data.size > 0) {
-            ws.send(e.data);
-          }
-        };
-        mediaRecorder.start(500);
-
-        pingIntervalRef.current = setInterval(() => {
-          if (ws.readyState === WebSocket.OPEN) {
-            ws.send('ping');
-          }
-
-        }, 5000);
+        // DO NOT start MediaRecorder here — wait for backend 'ready' signal
+        // so that Deepgram is fully started before we send audio
       };
 
       ws.onmessage = async (event) => {
         if (typeof event.data === 'string') {
           const msg = JSON.parse(event.data);
+
+          // Backend signals that Deepgram is ready to receive audio
+          if (msg.type === 'ready') {
+            const options = MediaRecorder.isTypeSupported('audio/webm') ? { mimeType: 'audio/webm' } : {};
+            const mediaRecorder = new MediaRecorder(stream, options);
+            mediaRecorderRef.current = mediaRecorder;
+            mediaRecorder.ondataavailable = (e) => {
+              if (ws.readyState === WebSocket.OPEN && e.data.size > 0) {
+                ws.send(e.data);
+              }
+            };
+            mediaRecorder.start(250); // smaller chunks = faster recognition
+
+            pingIntervalRef.current = setInterval(() => {
+              if (ws.readyState === WebSocket.OPEN) {
+                ws.send('ping');
+              }
+            }, 5000);
+          }
+
           if (msg.type === 'transcript') setTranscript(msg.text);
           if (msg.type === 'ai_response') setAiResponse(msg.text);
         } else {
@@ -63,15 +69,21 @@ export default function ContactPage() {
         }
       };
 
-      ws.onclose = () => {
-        setCallStatus(prevStatus => {
-          if (prevStatus !== 'ended') {
-            setTimeout(() => startCall(), 2000);
-            return 'connecting';
-          }
-          return prevStatus;
-        });
+      ws.onerror = (err) => {
+        console.error('WebSocket error:', err);
+        setCallStatus('idle');
       };
+
+      // DO NOT auto-reconnect — this causes an infinite loop where
+      // Deepgram never gets to listen because the connection keeps resetting
+      ws.onclose = () => {
+        if (pingIntervalRef.current) clearInterval(pingIntervalRef.current);
+        mediaRecorderRef.current?.stop();
+        stream.getTracks().forEach(t => t.stop());
+        setCallStatus(prev => prev === 'active' ? 'ended' : prev);
+        setTimeout(() => setCallStatus(s => s === 'ended' ? 'idle' : s), 3000);
+      };
+
     } catch (err) {
       setCallStatus('idle');
       console.error('Call failed:', err);
@@ -89,6 +101,7 @@ export default function ContactPage() {
       setAiResponse('');
     }, 3000);
   };
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

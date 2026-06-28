@@ -333,6 +333,9 @@ async def voice_websocket(websocket: WebSocket):
 
         dg_connection.start(options)
 
+        # Tell frontend to start sending audio — Deepgram is now ready
+        await websocket.send_json({"type": "ready"})
+
         while True:
             message = await websocket.receive()
             if message["type"] == "websocket.receive":
