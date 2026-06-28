@@ -4,7 +4,7 @@ from deepgram import DeepgramClient, LiveTranscriptionEvents, LiveOptions
 from groq import Groq
 import edge_tts
 import tempfile
-import os, json, asyncio, sys
+import os, asyncio, sys
 
 # Fix for macOS SSL Certificate errors (only apply on macOS, NOT on Railway/Linux)
 if sys.platform == "darwin":
@@ -12,20 +12,14 @@ if sys.platform == "darwin":
     os.environ["SSL_CERT_FILE"] = certifi.where()
 
 from dotenv import load_dotenv
-
 load_dotenv()
 
 app = FastAPI()
 
-origins = [
-    "http://localhost:5173",
-    "http://localhost:3000",
-    "https://ali-electronics.vercel.app"
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],  # Allow all origins so Vercel frontend can connect
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -240,42 +234,47 @@ async def voice_websocket(websocket: WebSocket):
 
     deepgram = DeepgramClient(DEEPGRAM_API_KEY)
     dg_connection = deepgram.listen.websocket.v("1")
-    transcript_buffer = ""
+
+    # ---------- Deepgram callbacks (run in background threads) ----------
 
     def on_transcript(self, result, **kwargs):
-        nonlocal transcript_buffer
         try:
             sentence = result.channel.alternatives[0].transcript
-            if sentence.strip():
-                asyncio.run_coroutine_threadsafe(
-                    websocket.send_json({"type": "transcript", "text": sentence}),
-                    loop
-                )
-            if result.is_final and sentence.strip():
-                transcript_buffer = sentence
+            if not sentence.strip():
+                return
+            # Forward partial transcripts so user sees live feedback
+            asyncio.run_coroutine_threadsafe(
+                websocket.send_json({"type": "transcript", "text": sentence}),
+                loop
+            )
+            if result.is_final:
+                # Schedule AI response as a background task — MUST NOT block this thread
                 asyncio.run_coroutine_threadsafe(
                     process_transcript(sentence),
                     loop
                 )
         except Exception as e:
-            print(f"Transcript error: {e}")
-            
+            print(f"on_transcript error: {e}")
+
     def on_error(self, error, **kwargs):
-        print(f"Deepgram Error: {error}")
+        print(f"Deepgram error: {error}")
         asyncio.run_coroutine_threadsafe(
-            websocket.send_json({"type": "ai_response", "text": f"Deepgram Error: {error}"}),
+            websocket.send_json({"type": "error", "text": f"Deepgram error: {error}"}),
             loop
         )
 
+    dg_connection.on(LiveTranscriptionEvents.Transcript, on_transcript)
     dg_connection.on(LiveTranscriptionEvents.Error, on_error)
 
+    # ---------- AI Response pipeline ----------
+
     async def process_transcript(text: str):
+        """Runs concurrently on the event loop — does NOT block the audio receive loop."""
         try:
             conversation_history.append({"role": "user", "content": text})
-            await websocket.send_json({"type": "transcript", "text": text})
 
-            # Run blocking Groq call in a thread so it does NOT freeze the asyncio event loop
-            # Without this, audio stops flowing to Deepgram while AI is thinking!
+            # CRITICAL: use asyncio.to_thread for blocking Groq SDK call
+            # Without this the entire event loop freezes and Deepgram drops the connection
             chat_response = await asyncio.to_thread(
                 groq_client.chat.completions.create,
                 model="llama-3.1-8b-instant",
@@ -288,6 +287,7 @@ async def voice_websocket(websocket: WebSocket):
 
             await websocket.send_json({"type": "ai_response", "text": ai_text})
 
+            # Generate TTS audio
             voice = detect_language(ai_text)
             communicate = edge_tts.Communicate(text=ai_text, voice=voice)
             with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp:
@@ -302,10 +302,10 @@ async def voice_websocket(websocket: WebSocket):
             print(f"process_transcript error: {e}")
             try:
                 await websocket.send_json({"type": "ai_response", "text": f"Error: {str(e)}"})
-            except:
+            except Exception:
                 pass
 
-    dg_connection.on(LiveTranscriptionEvents.Transcript, on_transcript)
+    # ---------- Deepgram options ----------
 
     options = LiveOptions(
         model="nova-2",
@@ -313,23 +313,24 @@ async def voice_websocket(websocket: WebSocket):
         smart_format=True,
         interim_results=True,
         punctuate=True,
+        endpointing=500,  # detect end of speech after 500ms silence
     )
 
+    # ---------- Main session ----------
+
     try:
-        # Also run greeting Groq call in thread to avoid blocking
+        # Generate greeting — use thread so event loop is never blocked
         greeting_response = await asyncio.to_thread(
             groq_client.chat.completions.create,
             model="llama-3.1-8b-instant",
-            messages=conversation_history + [{"role": "user", "content": "greet the customer"}],
+            messages=conversation_history + [{"role": "user", "content": "greet the customer briefly in 1 sentence"}],
             max_tokens=60,
         )
         greeting_text = greeting_response.choices[0].message.content
+
         await websocket.send_json({"type": "ai_response", "text": greeting_text})
-        # Greeting always in English
-        communicate = edge_tts.Communicate(
-            text=greeting_text,
-            voice="en-US-JennyNeural"
-        )
+
+        communicate = edge_tts.Communicate(text=greeting_text, voice="en-US-JennyNeural")
         with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp:
             tmp_path = tmp.name
         await communicate.save(tmp_path)
@@ -338,37 +339,45 @@ async def voice_websocket(websocket: WebSocket):
         os.unlink(tmp_path)
         await websocket.send_bytes(audio_bytes)
 
+        # Start Deepgram AFTER greeting is fully done
         dg_connection.start(options)
 
-        # Tell frontend to start sending audio — Deepgram is now ready
+        # Signal frontend to start sending microphone audio
         await websocket.send_json({"type": "ready"})
 
+        # Audio receive loop — forwards raw mic bytes to Deepgram
         while True:
             message = await websocket.receive()
+            if message["type"] == "websocket.disconnect":
+                break
             if message["type"] == "websocket.receive":
                 if "text" in message and message["text"] == "ping":
-                    continue
+                    continue  # keepalive, ignore
                 if "bytes" in message and message["bytes"]:
                     dg_connection.send(message["bytes"])
 
     except WebSocketDisconnect:
-        print("Client disconnected.")
-        dg_connection.finish()
+        print("Client disconnected cleanly.")
     except Exception as e:
         import traceback
         traceback.print_exc()
-        print(f"Server error: {e}")
+        print(f"Session error: {e}")
         try:
-            await websocket.send_json({"type": "ai_response", "text": f"System Error: {str(e)}"})
-            await asyncio.sleep(2) # Give the frontend time to receive it
-        except:
+            await websocket.send_json({"type": "error", "text": f"Session error: {str(e)}"})
+        except Exception:
             pass
-        dg_connection.finish()
-        await websocket.close()
+    finally:
+        # Always clean up Deepgram connection
+        try:
+            dg_connection.finish()
+        except Exception:
+            pass
+
 
 @app.get("/health")
 def health():
     return {"status": "ok", "agent": "Haier Assistant"}
+
 
 if __name__ == "__main__":
     import uvicorn
