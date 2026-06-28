@@ -11,7 +11,7 @@ type SortKey = 'featured' | 'price-asc' | 'price-desc' | 'newest';
 function ProductCardSkeleton() {
   return (
     <div className="bg-white rounded-2xl shadow-sm overflow-hidden flex flex-col h-full animate-pulse">
-      <div className="h-52 md:h-56 bg-[#f8f8f8] rounded-t-2xl" />
+      <div className="h-64 md:h-72 bg-[#f8f8f8] rounded-t-2xl" />
       <div className="p-3 flex flex-col flex-grow">
         <div className="h-3 w-16 bg-gray-200 rounded mb-2" />
         <div className="h-4 w-3/4 bg-gray-200 rounded mb-1" />
@@ -36,7 +36,7 @@ function ProductCard({ product }: { product: any }) {
   return (
     <div className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden flex flex-col h-full">
       <Link to={product.slug ? `/product/${product.slug}` : '#'} className="block flex-grow">
-        <div className="h-52 md:h-56 bg-[#f8f8f8] rounded-t-2xl flex items-center justify-center p-4 relative">
+        <div className="h-64 md:h-72 bg-[#f8f8f8] rounded-t-2xl flex items-center justify-center p-4 relative">
           {product.thumbnail_url ? (
             <img
               className="w-full h-full object-contain"
@@ -104,6 +104,22 @@ function ProductCard({ product }: { product: any }) {
   );
 }
 
+const getCategoryMeta = (slug?: string) => {
+  switch (slug) {
+    case 'air-conditioners': return { subtitle: "Beat Pakistan's heat with Haier T3 inverter technology", icon: "❄️" };
+    case 'refrigerators': return { subtitle: "Keep fresh longer with Haier's advanced cooling", icon: "🧊" };
+    case 'washing-machines': return { subtitle: "Superior laundry care for every Pakistani home", icon: "👕" };
+    case 'led-tvs': return { subtitle: "Cinematic experience with Haier QLED & Google TV", icon: "📺" };
+    case 'freezers': return { subtitle: "Reliable freezing solution for homes & businesses", icon: "🧊" };
+    case 'water-dispensers': return { subtitle: "Pure, clean water — hot & cold at your convenience", icon: "💧" };
+    case 'microwave-ovens': return { subtitle: "Smart cooking made simple with Haier", icon: "🍽️" };
+    case 'kitchen-appliances': return { subtitle: "Elevate your kitchen with Haier appliances", icon: "🍳" };
+    case 'small-appliances': return { subtitle: "Smart solutions for everyday living", icon: "⚡" };
+    case 'laptops': return { subtitle: "Powerful performance, slim design", icon: "💻" };
+    default: return { subtitle: "Genuine Haier products with official warranty", icon: "✨" };
+  }
+};
+
 export default function CategoryProductsPage() {
   const { slug } = useParams<{ slug: string }>();
   const [products, setProducts] = useState<any[]>([]);
@@ -165,7 +181,7 @@ export default function CategoryProductsPage() {
       <div className="max-w-[1440px] mx-auto px-6 md:px-container-margin pt-6 pb-16">
 
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-1.5 text-xs text-neutral-500 mb-8 flex-wrap">
+        <nav className="flex items-center gap-1.5 text-xs text-neutral-500 mb-6 flex-wrap">
           <Link to="/" className="hover:text-neutral-900 transition-colors font-medium">Home</Link>
           <ChevronRight className="w-3.5 h-3.5 flex-shrink-0" />
           <Link to="/categories" className="hover:text-neutral-900 transition-colors font-medium">Categories</Link>
@@ -173,22 +189,32 @@ export default function CategoryProductsPage() {
           <span className="text-neutral-900 font-semibold capitalize">{displayName}</span>
         </nav>
 
-        {/* Heading + Sort Row */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-2xl sm:text-3xl md:text-[36px] font-bold tracking-tight text-neutral-900 leading-tight capitalize">
+        {/* Banner */}
+        <div className="w-full h-40 md:h-56 bg-gradient-to-r from-gray-900 to-gray-700 rounded-2xl mb-8 p-6 md:p-10 flex items-center justify-between overflow-hidden relative">
+          <div className="relative z-10 max-w-xl">
+            <span className="inline-block px-2.5 py-1 bg-white/10 border border-white/20 rounded-full text-white/70 text-xs font-semibold tracking-wider mb-3 backdrop-blur-sm">
+              Official Haier Store
+            </span>
+            <h1 className="text-3xl md:text-5xl font-bold text-white mb-2 md:mb-4 capitalize leading-tight">
               {displayName}
-              {!loading && (
-                <span className="text-neutral-400 font-normal text-xl ml-2">
-                  ({products.length})
-                </span>
-              )}
             </h1>
-            <p className="text-neutral-500 text-sm mt-1">Official Haier products — genuine warranty</p>
+            <p className="text-sm md:text-lg text-white/80 leading-relaxed max-w-md">
+              {getCategoryMeta(slug).subtitle}
+            </p>
           </div>
+          <div className="relative z-10 text-4xl md:text-6xl flex-shrink-0 ml-4">
+            {getCategoryMeta(slug).icon}
+          </div>
+          {/* Subtle background decoration */}
+          <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-white/5 to-transparent pointer-events-none" />
+        </div>
 
-          {/* Sort Dropdown */}
-          <div className="flex items-center gap-2 self-start sm:self-auto">
+        {/* Sort Row */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div className="text-neutral-500 font-medium text-sm">
+            {!loading && `${products.length} products found`}
+          </div>
+          <div className="flex items-center gap-2">
             <SlidersHorizontal className="w-4 h-4 text-neutral-500 flex-shrink-0" />
             <select
               value={sort}
