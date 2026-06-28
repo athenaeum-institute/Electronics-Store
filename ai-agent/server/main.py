@@ -234,6 +234,7 @@ CLOSING:
 @app.websocket("/ws/voice")
 async def voice_websocket(websocket: WebSocket):
     await websocket.accept()
+    loop = asyncio.get_running_loop()
     conversation_history = [{"role": "system", "content": SYSTEM_PROMPT}]
 
     deepgram = DeepgramClient(DEEPGRAM_API_KEY)
@@ -248,7 +249,7 @@ async def voice_websocket(websocket: WebSocket):
                 transcript_buffer = sentence
                 asyncio.run_coroutine_threadsafe(
                     process_transcript(sentence),
-                    asyncio.get_event_loop()
+                    loop
                 )
         except Exception as e:
             print(f"Transcript error: {e}")
