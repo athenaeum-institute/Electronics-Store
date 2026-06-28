@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Shield, Truck, BadgeCheck, Star, Minus, Plus, ChevronRight } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { getProductBySlug, getProductsByCategory } from '../lib/supabase';
+import { getProductBySlug, getProductsByCategory, supabase } from '../lib/supabase';
 import { useStore } from '../store/useStore';
 
 interface ProductColor {
@@ -154,8 +154,20 @@ export default function ProductDetails() {
           setActiveImage(p.thumbnail_url || p.images?.[0] || '');
         }
 
-        if (p.category?.slug) {
-          const related = await getProductsByCategory(p.category.slug);
+        let catSlug = p.category?.slug;
+        if (!catSlug && p.category_id) {
+          const { data: catData } = await supabase
+            .from('categories')
+            .select('slug')
+            .eq('id', p.category_id)
+            .single();
+          if (catData?.slug) {
+            catSlug = catData.slug;
+          }
+        }
+
+        if (catSlug) {
+          const related = await getProductsByCategory(catSlug);
           setRelatedProducts((related as any[]).filter((r: any) => r.id !== p.id).slice(0, 4));
         }
       } catch (err) {
