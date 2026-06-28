@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Shield, Truck, BadgeCheck, Star, Minus, Plus, ChevronRight } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { getProductBySlug, getProductsByCategory } from '../lib/supabase';
@@ -112,6 +112,7 @@ function RelatedProductCard({ product }: { product: any }) {
 // ── Main Component ────────────────────────────────────────────────────
 export default function ProductDetails() {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const addToCart = useStore(s => s.addToCart);
 
   const [product, setProduct] = useState<Product | null>(null);
@@ -123,6 +124,11 @@ export default function ProductDetails() {
   const [activeTab, setActiveTab] = useState<'specifications' | 'description' | 'warranty'>('specifications');
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
   const [imageLoaded, setImageLoaded] = useState(true);
+  const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [activeImage]);
 
   useEffect(() => {
     if (!slug) return;
@@ -252,12 +258,22 @@ export default function ProductDetails() {
                 </div>
               )}
 
-              <img
-                src={activeImage || 'https://placehold.co/600x600?text=No+Image'}
-                alt={product.name}
-                onLoad={() => setImageLoaded(true)}
-                className={`w-full h-full object-contain p-8 transition-all duration-300 ${imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-[1.02]'}`}
-              />
+              {imgError || !activeImage ? (
+                <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 rounded-2xl">
+                  <span className="text-6xl font-bold text-gray-300">
+                    {product.name ? product.name.charAt(0).toUpperCase() : 'P'}
+                  </span>
+                  <span className="text-sm text-gray-400 mt-2">{product.model_number}</span>
+                </div>
+              ) : (
+                <img
+                  src={activeImage}
+                  alt={product.name}
+                  onLoad={() => setImageLoaded(true)}
+                  onError={() => setImgError(true)}
+                  className={`w-full h-full object-contain p-8 transition-all duration-300 ${imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-[1.02]'}`}
+                />
+              )}
             </div>
 
             {/* Thumbnails */}
@@ -588,16 +604,43 @@ export default function ProductDetails() {
 
       {/* ── SECTION 4: Related Products ─────────────────────────────── */}
       {relatedProducts.length > 0 && (
-        <section className="pt-8 pb-12 sm:pt-12 md:py-16 bg-surface-container-low">
-          <div className="px-6 md:px-container-margin max-w-[1440px] mx-auto">
-            <h2 className="text-2xl font-bold tracking-tight text-neutral-900 mb-8">You May Also Like</h2>
-            <div className="flex md:grid md:grid-cols-4 gap-4 md:gap-grid-gutter overflow-x-auto md:overflow-visible snap-x snap-mandatory pb-4 -mx-6 px-6 md:mx-0 md:px-0">
-              {relatedProducts.map(rp => (
-                <RelatedProductCard key={rp.id} product={rp} />
+        <div className="max-w-[1440px] mx-auto px-6 md:px-container-margin">
+          <div className="mt-12 mb-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-6">You May Also Like</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {relatedProducts.map((related) => (
+                <div
+                  key={related.id}
+                  onClick={() => navigate(`/product/${related.slug}`)}
+                  className="cursor-pointer bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow overflow-hidden"
+                >
+                  <div className="h-48 bg-gray-100 flex items-center justify-center p-4 relative">
+                    {related.thumbnail_url ? (
+                      <img
+                        src={related.thumbnail_url}
+                        alt={related.name}
+                        className="w-full h-full object-contain relative z-10"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    ) : null}
+                    <span className="text-4xl font-bold text-gray-200 absolute">
+                      {related.name ? related.name.charAt(0).toUpperCase() : ''}
+                    </span>
+                  </div>
+                  <div className="p-3">
+                    <p className="text-sm font-semibold text-gray-900 line-clamp-2">{related.name}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{related.model_number}</p>
+                    <p className="text-base font-bold text-gray-900 mt-2">
+                      Rs. {related.price?.toLocaleString()}
+                    </p>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
-        </section>
+        </div>
       )}
     </main>
   );
