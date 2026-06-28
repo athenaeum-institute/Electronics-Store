@@ -1,0 +1,4 @@
+.DS_Store
+ai-agent/server/.env
+ai-agent/server/venv/
+ai-agent/server/__pycache__/

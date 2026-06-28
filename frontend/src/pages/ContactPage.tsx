@@ -1,6 +1,6 @@
 import { MapPin, Phone, MessageCircle, Clock, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -8,6 +8,84 @@ export default function ContactPage() {
     phone: '',
     message: ''
   });
+
+  // AI Voice Call state
+  const [callStatus, setCallStatus] = useState<'idle'|'connecting'|'active'|'ended'>('idle');
+  const [transcript, setTranscript] = useState('');
+  const [aiResponse, setAiResponse] = useState('');
+  const wsRef = useRef<WebSocket|null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder|null>(null);
+  const audioContextRef = useRef<AudioContext|null>(null);
+  const pingIntervalRef = useRef<any>(null);
+
+  const startCall = async () => {
+    try {
+      setCallStatus('connecting');
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const ws = new WebSocket('ws://localhost:8000/ws/voice');
+      wsRef.current = ws;
+      audioContextRef.current = new AudioContext();
+
+      ws.onopen = () => {
+        setCallStatus('active');
+        const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+        mediaRecorderRef.current = mediaRecorder;
+        mediaRecorder.ondataavailable = (e) => {
+          if (ws.readyState === WebSocket.OPEN && e.data.size > 0) {
+            ws.send(e.data);
+          }
+        };
+        mediaRecorder.start(500);
+
+        pingIntervalRef.current = setInterval(() => {
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(new Blob(['ping'], {type: 'text/plain'}));
+          }
+        }, 5000);
+      };
+
+      ws.onmessage = async (event) => {
+        if (typeof event.data === 'string') {
+          const msg = JSON.parse(event.data);
+          if (msg.type === 'transcript') setTranscript(msg.text);
+          if (msg.type === 'ai_response') setAiResponse(msg.text);
+        } else {
+          // Play audio response
+          const arrayBuffer = await event.data.arrayBuffer();
+          const audioBuffer = await audioContextRef.current!.decodeAudioData(arrayBuffer);
+          const source = audioContextRef.current!.createBufferSource();
+          source.buffer = audioBuffer;
+          source.connect(audioContextRef.current!.destination);
+          source.start();
+        }
+      };
+
+      ws.onclose = () => {
+        setCallStatus(prevStatus => {
+          if (prevStatus !== 'ended') {
+            setTimeout(() => startCall(), 2000);
+            return 'connecting';
+          }
+          return prevStatus;
+        });
+      };
+    } catch (err) {
+      setCallStatus('idle');
+      console.error('Call failed:', err);
+    }
+  };
+
+  const endCall = () => {
+    if (pingIntervalRef.current) clearInterval(pingIntervalRef.current);
+    mediaRecorderRef.current?.stop();
+    wsRef.current?.close();
+    setCallStatus('ended');
+    setTimeout(() => {
+      setCallStatus('idle');
+      setTranscript('');
+      setAiResponse('');
+    }, 3000);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +118,55 @@ export default function ContactPage() {
           
           {/* Left Column: Info & Form */}
           <div className="flex flex-col gap-8">
-            
+
+            {/* AI Voice Call Button */}
+            <div className="bg-gradient-to-r from-gray-900 to-gray-700 rounded-2xl p-6 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-bold">Need Help?</h3>
+                  <p className="text-sm text-white/70 mt-1">Talk to our AI assistant instantly</p>
+                </div>
+                {callStatus === 'idle' && (
+                  <button
+                    onClick={startCall}
+                    className="flex items-center gap-2 bg-white text-black px-5 py-2.5 rounded-full text-sm font-bold hover:bg-gray-100 transition-colors"
+                  >
+                    📞 Call Now
+                  </button>
+                )}
+                {callStatus === 'connecting' && (
+                  <span className="text-sm text-white/70 animate-pulse">Connecting...</span>
+                )}
+                {callStatus === 'active' && (
+                  <button
+                    onClick={endCall}
+                    className="flex items-center gap-2 bg-red-500 text-white px-5 py-2.5 rounded-full text-sm font-bold hover:bg-red-600 transition-colors animate-pulse"
+                  >
+                    📵 End Call
+                  </button>
+                )}
+              </div>
+
+              {callStatus === 'active' && (
+                <div className="mt-4 space-y-2">
+                  {transcript && (
+                    <div className="bg-white/10 rounded-xl px-4 py-2 text-sm">
+                      <span className="text-white/50 text-xs">You: </span>{transcript}
+                    </div>
+                  )}
+                  {aiResponse && (
+                    <div className="bg-white/20 rounded-xl px-4 py-2 text-sm">
+                      <span className="text-white/50 text-xs">Haier Assistant: </span>{aiResponse}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {callStatus === 'ended' && (
+                <p className="text-sm text-white/70 mt-3">Call ended. Thank you for contacting Ali Electronics!</p>
+              )}
+            </div>
+
             {/* Store Info Card */}
             <div className="bg-surface-container-lowest p-6 md:p-8 rounded-[24px] bento-card-shadow">
               <h3 className="text-xl font-bold text-neutral-900 mb-6">Store Information</h3>
