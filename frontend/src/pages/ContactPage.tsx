@@ -58,6 +58,10 @@ export default function ContactPage() {
 
           if (msg.type === 'transcript') setTranscript(msg.text);
           if (msg.type === 'ai_response') setAiResponse(msg.text);
+          if (msg.type === 'error') {
+            console.error('Backend error:', msg.text);
+            // Optionally show to user in UI if needed, for now just console
+          }
         } else {
           // Play audio response
           const arrayBuffer = await event.data.arrayBuffer();

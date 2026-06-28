@@ -242,12 +242,16 @@ async def voice_websocket(websocket: WebSocket):
             sentence = result.channel.alternatives[0].transcript
             if not sentence.strip():
                 return
+            
+            print(f"[Deepgram] Transcript received: '{sentence}', is_final: {result.is_final}")
+            
             # Forward partial transcripts so user sees live feedback
             asyncio.run_coroutine_threadsafe(
                 websocket.send_json({"type": "transcript", "text": sentence}),
                 loop
             )
             if result.is_final:
+                print(f"[Deepgram] Final transcript! Starting AI processing for: '{sentence}'")
                 # Schedule AI response as a background task — MUST NOT block this thread
                 asyncio.run_coroutine_threadsafe(
                     process_transcript(sentence),
@@ -255,6 +259,10 @@ async def voice_websocket(websocket: WebSocket):
                 )
         except Exception as e:
             print(f"on_transcript error: {e}")
+            asyncio.run_coroutine_threadsafe(
+                websocket.send_json({"type": "error", "text": f"Transcription error: {str(e)}"}),
+                loop
+            )
 
     def on_error(self, error, **kwargs):
         print(f"Deepgram error: {error}")
@@ -346,14 +354,19 @@ async def voice_websocket(websocket: WebSocket):
         await websocket.send_json({"type": "ready"})
 
         # Audio receive loop — forwards raw mic bytes to Deepgram
+        chunk_count = 0
         while True:
             message = await websocket.receive()
             if message["type"] == "websocket.disconnect":
+                print("Client disconnected via websocket.disconnect")
                 break
             if message["type"] == "websocket.receive":
                 if "text" in message and message["text"] == "ping":
                     continue  # keepalive, ignore
                 if "bytes" in message and message["bytes"]:
+                    chunk_count += 1
+                    if chunk_count % 20 == 0:
+                        print(f"Received {chunk_count} audio chunks from frontend so far...")
                     dg_connection.send(message["bytes"])
 
     except WebSocketDisconnect:
