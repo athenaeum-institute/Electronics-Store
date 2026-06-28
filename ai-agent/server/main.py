@@ -245,6 +245,13 @@ async def voice_websocket(websocket: WebSocket):
         nonlocal transcript_buffer
         try:
             sentence = result.channel.alternatives[0].transcript
+            if sentence.strip():
+                # Send every transcript (even partial) to the frontend so the user knows it's listening!
+                asyncio.run_coroutine_threadsafe(
+                    websocket.send_json({"type": "transcript", "text": sentence}),
+                    loop
+                )
+                
             if result.is_final and sentence.strip():
                 transcript_buffer = sentence
                 asyncio.run_coroutine_threadsafe(
@@ -253,6 +260,15 @@ async def voice_websocket(websocket: WebSocket):
                 )
         except Exception as e:
             print(f"Transcript error: {e}")
+            
+    def on_error(self, error, **kwargs):
+        print(f"Deepgram Error: {error}")
+        asyncio.run_coroutine_threadsafe(
+            websocket.send_json({"type": "ai_response", "text": f"Deepgram Error: {error}"}),
+            loop
+        )
+
+    dg_connection.on(LiveTranscriptionEvents.Error, on_error)
 
     async def process_transcript(text: str):
         try:
@@ -289,7 +305,7 @@ async def voice_websocket(websocket: WebSocket):
         model="nova-2",
         language="multi",
         smart_format=True,
-        interim_results=False,
+        interim_results=True,
         punctuate=True,
     )
 
