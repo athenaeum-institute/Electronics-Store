@@ -28,35 +28,32 @@ export default function Hero() {
   return (
     <>
       {/* ─── MOBILE HERO (hidden on md+) ─── */}
-      <section className="relative w-full min-h-[500px] flex items-center overflow-hidden bg-[#f5f5f7] md:hidden">
+      <section className="relative w-full h-screen overflow-hidden md:hidden">
         <div className="absolute inset-0 z-0">
           <img
-            className="w-full h-full object-cover object-[60%_center]"
+            className="w-full h-full object-cover"
             alt="Modern minimalist living room"
             src={heroImage}
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-white via-white/80 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
         </div>
-        <div className="relative z-10 px-6 sm:px-10 w-full py-16">
-          <div className="max-w-[480px]">
-            <p className="text-xs sm:text-sm font-semibold tracking-widest text-neutral-500 uppercase mb-3">
-              Ali Electronics
-            </p>
-            <h1 className="font-bold tracking-tight text-3xl sm:text-4xl text-neutral-900 mb-4 leading-[1.1]">
-              {heroTitle}
-            </h1>
-            <p className="text-sm text-neutral-600 mb-8 max-w-sm leading-relaxed">
-              {heroSubtitle}
-            </p>
-            <div className="flex flex-row gap-3">
-              <Link to="/categories" className="bg-neutral-900 text-white px-7 py-3 rounded-xl font-semibold text-sm hover:bg-neutral-700 active:scale-95 transition-all">
-                Shop Now
-              </Link>
-              <Link to="/categories" className="border border-neutral-300 text-neutral-900 px-7 py-3 rounded-xl font-semibold text-sm hover:bg-neutral-100 active:scale-95 transition-all bg-white/50 backdrop-blur-sm">
-                View Catalog
-              </Link>
-            </div>
+        <div className="absolute bottom-0 left-0 right-0 z-10 px-6 pb-10">
+          <p className="text-xs tracking-widest text-white/70 uppercase mb-1">
+            Ali Electronics
+          </p>
+          <h1 className="text-3xl font-bold text-white leading-tight">
+            {heroTitle}
+          </h1>
+          <p className="text-sm text-white/80 mt-2 mb-6">
+            {heroSubtitle}
+          </p>
+          <div className="flex gap-3 max-w-[400px]">
+            <Link to="/categories" className="flex-1 bg-white text-black px-6 py-3 rounded-full text-sm font-bold text-center">
+              Shop Now
+            </Link>
+            <Link to="/categories" className="flex-1 border border-white text-white px-6 py-3 rounded-full text-sm font-semibold bg-transparent text-center">
+              View Catalog
+            </Link>
           </div>
         </div>
       </section>
