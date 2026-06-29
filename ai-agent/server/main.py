@@ -46,24 +46,35 @@ async def text_to_speech(text: str) -> bytes:
     return audio_bytes
 
 async def transcribe_audio(audio_bytes: bytes) -> str:
-    """Use Groq Whisper to transcribe audio — more reliable than Deepgram WebSocket"""
-    try:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as tmp:
-            tmp.write(audio_bytes)
-            tmp_path = tmp.name
-        
-        with open(tmp_path, "rb") as f:
-            result = await asyncio.to_thread(
-                groq_client.audio.transcriptions.create,
-                model="whisper-large-v3-turbo",
-                file=("audio.webm", f, "audio/webm"),
-                language=None,
-            )
-        os.unlink(tmp_path)
-        return result.text.strip()
-    except Exception as e:
-        print(f"Transcription error: {e}")
-        return ""
+    formats = [
+        ("audio.webm", "audio/webm"),
+        ("audio.mp4", "audio/mp4"),
+        ("audio.ogg", "audio/ogg"),
+    ]
+    for filename, mimetype in formats:
+        try:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=f".{filename.split('.')[-1]}") as tmp:
+                tmp.write(audio_bytes)
+                tmp_path = tmp.name
+            with open(tmp_path, "rb") as f:
+                result = await asyncio.to_thread(
+                    groq_client.audio.transcriptions.create,
+                    model="whisper-large-v3-turbo",
+                    file=(filename, f, mimetype),
+                    language=None,
+                )
+            os.unlink(tmp_path)
+            text = result.text.strip()
+            if text:
+                print(f"Transcribed with {mimetype}: '{text}'")
+                return text
+        except Exception as e:
+            print(f"Failed with {mimetype}: {e}")
+            try:
+                os.unlink(tmp_path)
+            except:
+                pass
+    return ""
 
 @app.websocket("/ws/voice")
 async def voice_websocket(websocket: WebSocket):
@@ -113,7 +124,7 @@ async def voice_websocket(websocket: WebSocket):
                     current_time = asyncio.get_event_loop().time()
                     
                     # Process every 4 seconds or when buffer > 64KB
-                    if (current_time - last_process_time >= 4.0 or 
+                    if (current_time - last_process_time >= 3.0 or 
                         len(audio_buffer) > 65536):
                         
                         if len(audio_buffer) > 5000:
