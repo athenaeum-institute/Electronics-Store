@@ -46,34 +46,25 @@ async def text_to_speech(text: str) -> bytes:
     return audio_bytes
 
 async def transcribe_audio(audio_bytes: bytes) -> str:
+    tmp_path = None
     try:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as tmp:
+            tmp.write(audio_bytes)
             tmp_path = tmp.name
-        
-        # Convert webm to wav using ffmpeg
-        proc = await asyncio.create_subprocess_exec(
-            'ffmpeg', '-i', 'pipe:0', '-ar', '16000', '-ac', '1', 
-            '-f', 'wav', tmp_path, '-y', '-loglevel', 'quiet',
-            stdin=asyncio.subprocess.PIPE,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
-        )
-        await proc.communicate(input=audio_bytes)
-        
+
         with open(tmp_path, "rb") as f:
             result = await asyncio.to_thread(
                 groq_client.audio.transcriptions.create,
                 model="whisper-large-v3-turbo",
-                file=("audio.wav", f, "audio/wav"),
+                file=("audio.webm", f, "audio/webm"),
                 language=None,
             )
-        os.unlink(tmp_path)
+
         text = result.text.strip()
         
-        # Ignore hallucinations — common Whisper false positives
         hallucinations = [
-            'thank you', 'thanks', 'you', '.', '..', '...', 
-            'the', 'a', 'i', 'oh', 'um', 'uh'
+            'thank you', 'thanks', 'you', '.', '..', '...',
+            'the', 'a', 'i', 'oh', 'um', 'uh', 'thank you.'
         ]
         if text.lower() in hallucinations:
             print(f"Ignoring hallucination: '{text}'")
@@ -81,14 +72,16 @@ async def transcribe_audio(audio_bytes: bytes) -> str:
             
         print(f"Transcribed: '{text}'")
         return text
-        
+
     except Exception as e:
         print(f"Transcription error: {e}")
-        try:
-            os.unlink(tmp_path)
-        except:
-            pass
         return ""
+    finally:
+        if tmp_path:
+            try:
+                os.unlink(tmp_path)
+            except:
+                pass
 
 @app.websocket("/ws/voice")
 async def voice_websocket(websocket: WebSocket):
