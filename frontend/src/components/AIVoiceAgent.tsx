@@ -21,6 +21,13 @@ export default function AIVoiceAgent() {
   }, [])
 
   const cleanup = () => {
+    const ac = (streamRef.current as any)?._audioContext
+    const proc = (streamRef.current as any)?._processor  
+    const src = (streamRef.current as any)?._source
+    if (src) src.disconnect()
+    if (proc) proc.disconnect()
+    if (ac) ac.close()
+
     isReadyRef.current = false
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop()
@@ -130,23 +137,33 @@ export default function AIVoiceAgent() {
   }
 
   const startStreamingMic = (ws: WebSocket, stream: MediaStream) => {
-    // Stream raw audio continuously to Deepgram via server
-    const mediaRecorder = new MediaRecorder(stream, {
-      mimeType: MediaRecorder.isTypeSupported('audio/webm;codecs=opus') 
-        ? 'audio/webm;codecs=opus' 
-        : 'audio/webm'
-    })
-    mediaRecorderRef.current = mediaRecorder
-
-    mediaRecorder.ondataavailable = (event) => {
-      if (event.data.size > 0 && ws.readyState === WebSocket.OPEN) {
-        ws.send(event.data)
+    // Use AudioContext to get raw PCM audio — more reliable than MediaRecorder
+    const audioContext = new AudioContext({ sampleRate: 16000 })
+    const source = audioContext.createMediaStreamSource(stream)
+    const processor = audioContext.createScriptProcessor(4096, 1, 1)
+    
+    source.connect(processor)
+    processor.connect(audioContext.destination)
+    
+    processor.onaudioprocess = (e) => {
+      if (ws.readyState !== WebSocket.OPEN) return
+      
+      const inputData = e.inputBuffer.getChannelData(0)
+      // Convert Float32 to Int16 PCM
+      const pcmData = new Int16Array(inputData.length)
+      for (let i = 0; i < inputData.length; i++) {
+        const s = Math.max(-1, Math.min(1, inputData[i]))
+        pcmData[i] = s < 0 ? s * 0x8000 : s * 0x7FFF
       }
+      ws.send(pcmData.buffer)
     }
-
-    // Send chunks every 250ms — real-time streaming to Deepgram
-    mediaRecorder.start(250)
-    console.log('Mic streaming started')
+    
+    // Store reference to stop later
+    ;(streamRef.current as any)._audioContext = audioContext
+    ;(streamRef.current as any)._processor = processor
+    ;(streamRef.current as any)._source = source
+    
+    console.log('PCM mic streaming started')
   }
 
   const endCall = () => {

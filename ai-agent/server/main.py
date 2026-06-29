@@ -321,7 +321,10 @@ async def voice_websocket(websocket: WebSocket):
         smart_format=True,
         interim_results=True,
         punctuate=True,
-        endpointing=500,  # detect end of speech after 500ms silence
+        endpointing=500,
+        encoding="linear16",
+        sample_rate=16000,
+        channels=1,
     )
 
     # ---------- Main session ----------
