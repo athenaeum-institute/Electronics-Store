@@ -15,20 +15,15 @@ export default function AIVoiceAgent() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const isReadyRef = useRef<boolean>(false)
+  const intervalRef = useRef<any>(null)
 
   useEffect(() => {
     return () => { cleanup() }
   }, [])
 
   const cleanup = () => {
-    const ac = (streamRef.current as any)?._audioContext
-    const proc = (streamRef.current as any)?._processor  
-    const src = (streamRef.current as any)?._source
-    if (src) src.disconnect()
-    if (proc) proc.disconnect()
-    if (ac) ac.close()
-
     isReadyRef.current = false
+    if (intervalRef.current) clearInterval(intervalRef.current)
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop()
     }
@@ -49,27 +44,27 @@ export default function AIVoiceAgent() {
       setTranscript('')
       setState('connecting')
 
+      // Step 1: Get mic FIRST before WebSocket
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
-          sampleRate: 16000,
-          channelCount: 1,
           echoCancellation: true,
           noiseSuppression: true,
+          sampleRate: 16000,
         }
       })
       streamRef.current = stream
 
+      // Step 2: Connect WebSocket
       const ws = new WebSocket(WS_URL)
       ws.binaryType = 'arraybuffer'
       wsRef.current = ws
 
       ws.onopen = () => {
-        console.log('WebSocket connected')
-        setState('connecting')
+        console.log('✅ WebSocket connected')
       }
 
       ws.onmessage = async (event) => {
-        // Binary = audio to play
+        // Audio response from server
         if (event.data instanceof ArrayBuffer) {
           setState('speaking')
           const blob = new Blob([event.data], { type: 'audio/mpeg' })
@@ -81,36 +76,35 @@ export default function AIVoiceAgent() {
               setState('listening')
             }
           }
-          audio.play().catch(console.error)
+          await audio.play().catch(console.error)
           return
         }
 
         // JSON messages
         try {
-          const msg = JSON.parse(event.data)
-          
+          const msg = JSON.parse(event.data as string)
+          console.log('📨 Server message:', msg.type, msg.text || '')
+
           if (msg.type === 'ready') {
-            // Server is ready — NOW start sending mic audio
+            console.log('🎤 Server ready — starting mic stream')
             isReadyRef.current = true
             setState('listening')
-            startStreamingMic(ws, stream)
+            startMicStream(ws, stream)
           }
-          
+
           if (msg.type === 'transcript') {
             setTranscript(msg.text)
-            setState('processing')
+            if (msg.text.trim()) setState('processing')
           }
-          
+
           if (msg.type === 'ai_response') {
             setTranscript(msg.text)
           }
-          
+
           if (msg.type === 'error') {
             console.error('Server error:', msg.text)
           }
-        } catch (e) {
-          // Not JSON, ignore
-        }
+        } catch (_) {}
       }
 
       ws.onerror = (e) => {
@@ -120,13 +114,14 @@ export default function AIVoiceAgent() {
         cleanup()
       }
 
-      ws.onclose = () => {
-        console.log('WebSocket closed')
+      ws.onclose = (e) => {
+        console.log('WebSocket closed:', e.code, e.reason)
         isReadyRef.current = false
         setState('idle')
       }
 
     } catch (err: any) {
+      console.error('startCall error:', err)
       if (err.name === 'NotAllowedError') {
         setError('Microphone access denied. Please allow mic.')
       } else {
@@ -136,34 +131,43 @@ export default function AIVoiceAgent() {
     }
   }
 
-  const startStreamingMic = (ws: WebSocket, stream: MediaStream) => {
-    // Use AudioContext to get raw PCM audio — more reliable than MediaRecorder
-    const audioContext = new AudioContext({ sampleRate: 16000 })
-    const source = audioContext.createMediaStreamSource(stream)
-    const processor = audioContext.createScriptProcessor(4096, 1, 1)
+  const startMicStream = (ws: WebSocket, stream: MediaStream) => {
+    console.log('🎙️ Starting MediaRecorder stream...')
     
-    source.connect(processor)
-    processor.connect(audioContext.destination)
-    
-    processor.onaudioprocess = (e) => {
-      if (ws.readyState !== WebSocket.OPEN) return
-      
-      const inputData = e.inputBuffer.getChannelData(0)
-      // Convert Float32 to Int16 PCM
-      const pcmData = new Int16Array(inputData.length)
-      for (let i = 0; i < inputData.length; i++) {
-        const s = Math.max(-1, Math.min(1, inputData[i]))
-        pcmData[i] = s < 0 ? s * 0x8000 : s * 0x7FFF
+    // Find supported mimeType
+    const mimeType = [
+      'audio/webm;codecs=opus',
+      'audio/webm',
+      'audio/ogg;codecs=opus',
+      'audio/ogg',
+    ].find(t => MediaRecorder.isTypeSupported(t)) || ''
+
+    console.log('Using mimeType:', mimeType || 'browser default')
+
+    const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : {})
+    mediaRecorderRef.current = recorder
+
+    recorder.ondataavailable = (event) => {
+      if (event.data && event.data.size > 0) {
+        if (ws.readyState === WebSocket.OPEN) {
+          console.log('📤 Sending audio chunk:', event.data.size, 'bytes')
+          ws.send(event.data)
+        } else {
+          console.warn('WebSocket not open, skipping chunk')
+        }
       }
-      ws.send(pcmData.buffer)
     }
-    
-    // Store reference to stop later
-    ;(streamRef.current as any)._audioContext = audioContext
-    ;(streamRef.current as any)._processor = processor
-    ;(streamRef.current as any)._source = source
-    
-    console.log('PCM mic streaming started')
+
+    recorder.onerror = (e) => {
+      console.error('MediaRecorder error:', e)
+    }
+
+    recorder.onstart = () => {
+      console.log('✅ MediaRecorder started')
+    }
+
+    // Send chunk every 100ms for real-time streaming
+    recorder.start(100)
   }
 
   const endCall = () => {
@@ -202,7 +206,7 @@ export default function AIVoiceAgent() {
       )}
 
       {transcript && state !== 'idle' && (
-        <div className="bg-white border border-gray-200 text-gray-700 text-xs px-3 py-2 rounded-xl shadow max-w-48 text-right">
+        <div className="bg-white border border-gray-200 text-gray-700 text-xs px-3 py-2 rounded-xl shadow max-w-48 text-right leading-relaxed">
           {transcript}
         </div>
       )}
