@@ -1,6 +1,7 @@
 import { MapPin, Phone, MessageCircle, Clock, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useState, useRef } from 'react';
+import AIVoiceAgent from '../components/AIVoiceAgent';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -311,6 +312,7 @@ export default function ContactPage() {
           </div>
 
         </div>
+        <AIVoiceAgent />
       </div>
     </main>
   );
