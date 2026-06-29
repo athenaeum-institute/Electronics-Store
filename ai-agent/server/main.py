@@ -46,35 +46,49 @@ async def text_to_speech(text: str) -> bytes:
     return audio_bytes
 
 async def transcribe_audio(audio_bytes: bytes) -> str:
-    formats = [
-        ("audio.webm", "audio/webm"),
-        ("audio.mp4", "audio/mp4"),
-        ("audio.ogg", "audio/ogg"),
-    ]
-    for filename, mimetype in formats:
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
+            tmp_path = tmp.name
+        
+        # Convert webm to wav using ffmpeg
+        proc = await asyncio.create_subprocess_exec(
+            'ffmpeg', '-i', 'pipe:0', '-ar', '16000', '-ac', '1', 
+            '-f', 'wav', tmp_path, '-y', '-loglevel', 'quiet',
+            stdin=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        await proc.communicate(input=audio_bytes)
+        
+        with open(tmp_path, "rb") as f:
+            result = await asyncio.to_thread(
+                groq_client.audio.transcriptions.create,
+                model="whisper-large-v3-turbo",
+                file=("audio.wav", f, "audio/wav"),
+                language=None,
+            )
+        os.unlink(tmp_path)
+        text = result.text.strip()
+        
+        # Ignore hallucinations — common Whisper false positives
+        hallucinations = [
+            'thank you', 'thanks', 'you', '.', '..', '...', 
+            'the', 'a', 'i', 'oh', 'um', 'uh'
+        ]
+        if text.lower() in hallucinations:
+            print(f"Ignoring hallucination: '{text}'")
+            return ""
+            
+        print(f"Transcribed: '{text}'")
+        return text
+        
+    except Exception as e:
+        print(f"Transcription error: {e}")
         try:
-            with tempfile.NamedTemporaryFile(delete=False, suffix=f".{filename.split('.')[-1]}") as tmp:
-                tmp.write(audio_bytes)
-                tmp_path = tmp.name
-            with open(tmp_path, "rb") as f:
-                result = await asyncio.to_thread(
-                    groq_client.audio.transcriptions.create,
-                    model="whisper-large-v3-turbo",
-                    file=(filename, f, mimetype),
-                    language=None,
-                )
             os.unlink(tmp_path)
-            text = result.text.strip()
-            if text:
-                print(f"Transcribed with {mimetype}: '{text}'")
-                return text
-        except Exception as e:
-            print(f"Failed with {mimetype}: {e}")
-            try:
-                os.unlink(tmp_path)
-            except:
-                pass
-    return ""
+        except:
+            pass
+        return ""
 
 @app.websocket("/ws/voice")
 async def voice_websocket(websocket: WebSocket):
